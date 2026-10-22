@@ -49,3 +49,6 @@ next-env.d.ts
 
 .vercel
 .env*
+
+# imágenes subidas (se guardan en el servidor)
+/uploads

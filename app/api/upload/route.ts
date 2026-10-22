@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
+import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { put } from "@vercel/blob";
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/auth";
+import { IMAGE_CONTENT_TYPES, UPLOAD_DIR } from "@/lib/uploads";
 
-const ALLOWED_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
 const MAX_SIZE_BYTES = 5 * 1024 * 1024;
 
 export async function POST(req: NextRequest) {
@@ -26,10 +26,11 @@ export async function POST(req: NextRequest) {
   }
 
   const ext = path.extname(file.name).toLowerCase();
-  const safeExt = ALLOWED_EXTENSIONS.has(ext) ? ext : ".jpg";
+  const safeExt = ext in IMAGE_CONTENT_TYPES ? ext : ".jpg";
   const filename = `${randomUUID()}${safeExt}`;
 
-  const blob = await put(`uploads/${filename}`, file, { access: "public" });
+  await mkdir(UPLOAD_DIR, { recursive: true });
+  await writeFile(path.join(UPLOAD_DIR, filename), Buffer.from(await file.arrayBuffer()));
 
-  return NextResponse.json({ url: blob.url });
+  return NextResponse.json({ url: `/uploads/${filename}` });
 }
