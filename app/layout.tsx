@@ -1,0 +1,46 @@
+import type { Metadata } from "next";
+import { Poppins, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { Toaster } from "@/components/ui/sonner";
+import { getThemeSettings } from "@/lib/queries/settings";
+import { buildThemeStyleTag } from "@/lib/theme-style";
+
+const poppins = Poppins({
+  variable: "--font-sans",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Pizzería Sergio",
+  description: "Sistema integral de gestión y autoservicio para pizzería",
+};
+
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const theme = await getThemeSettings();
+
+  return (
+    <html
+      lang="es"
+      suppressHydrationWarning
+      className={`${poppins.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <head>
+        <style>{buildThemeStyleTag(theme)}</style>
+      </head>
+      <body className="min-h-full flex flex-col">
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+          <TooltipProvider>{children}</TooltipProvider>
+          <Toaster position="top-center" />
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}

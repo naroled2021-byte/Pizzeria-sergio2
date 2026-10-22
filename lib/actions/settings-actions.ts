@@ -1,0 +1,215 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import bcrypt from "bcryptjs";
+import { db } from "@/lib/db";
+import { CASH_PIN_SETTING_KEY } from "@/lib/queries/settings";
+import { cashPinSchema } from "@/lib/validations/cash";
+import { requirePermission, requireSession } from "@/lib/auth-helpers";
+import {
+  generalSettingsSchema,
+  themeSettingsSchema,
+  printSettingsSchema,
+  autoservicioSettingsSchema,
+  autoservicioWaitMinutesSchema,
+  type GeneralSettingsInput,
+  type ThemeSettingsInput,
+  type PrintSettingsInput,
+  type AutoservicioSettingsInput,
+  type AutoservicioWaitMinutesInput,
+} from "@/lib/validations/settings";
+
+type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
+
+async function upsertSettings(entries: [string, string, string][]) {
+  await db.$transaction(
+    entries.map(([key, value, group]) =>
+      db.setting.upsert({
+        where: { key },
+        update: { value },
+        create: { key, value, group },
+      })
+    )
+  );
+}
+
+export async function updateGeneralSettings(input: GeneralSettingsInput): Promise<ActionResult> {
+  const session = await requirePermission("settings.manage");
+  const parsed = generalSettingsSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  const d = parsed.data;
+
+  await upsertSettings([
+    ["business.name", d.name, "general"],
+    ["business.logoUrl", d.logoUrl || "", "general"],
+    ["business.currency", d.currency, "general"],
+    ["business.taxRate", String(d.taxRate), "general"],
+    ["business.address", d.address || "", "general"],
+    ["business.phone", d.phone || "", "general"],
+    ["business.email", d.email || "", "general"],
+  ]);
+
+  await db.auditLog.create({
+    data: { userId: session.user.id, action: "settings.update_general", entity: "Setting" },
+  });
+
+  revalidatePath("/admin/configuracion");
+  return { ok: true, data: undefined };
+}
+
+export async function updateThemeSettings(input: ThemeSettingsInput): Promise<ActionResult> {
+  const session = await requirePermission("settings.manage");
+  const parsed = themeSettingsSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  const d = parsed.data;
+
+  await upsertSettings([
+    ["theme.primaryColor", d.primaryColor, "appearance"],
+    ["theme.secondaryColor", d.secondaryColor, "appearance"],
+    ["theme.accentColor", d.accentColor, "appearance"],
+  ]);
+
+  await db.auditLog.create({
+    data: { userId: session.user.id, action: "settings.update_theme", entity: "Setting" },
+  });
+
+  revalidatePath("/admin/configuracion");
+  revalidatePath("/", "layout");
+  return { ok: true, data: undefined };
+}
+
+export async function updatePrintSettings(input: PrintSettingsInput): Promise<ActionResult> {
+  const session = await requirePermission("settings.manage");
+  const parsed = printSettingsSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  const d = parsed.data;
+
+  await upsertSettings([
+    ["print.ticketHeader", d.ticketHeader || "", "print"],
+    ["print.ticketFooter", d.ticketFooter || "", "print"],
+    ["print.paperWidth", d.paperWidth, "print"],
+    ["print.copies", String(d.copies), "print"],
+  ]);
+
+  await db.auditLog.create({
+    data: { userId: session.user.id, action: "settings.update_print", entity: "Setting" },
+  });
+
+  revalidatePath("/admin/configuracion");
+  return { ok: true, data: undefined };
+}
+
+export async function updateAutoservicioSettings(input: AutoservicioSettingsInput): Promise<ActionResult> {
+  const session = await requirePermission("settings.manage");
+  const parsed = autoservicioSettingsSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  const d = parsed.data;
+
+  await upsertSettings([
+    ["autoservicio.waitMinutes", String(d.waitMinutes), "autoservicio"],
+    ["autoservicio.enabled", String(d.enabled), "autoservicio"],
+    ["autoservicio.mpAlias", d.mpAlias || "", "autoservicio"],
+    ["autoservicio.mpHolder", d.mpHolder || "", "autoservicio"],
+    ["autoservicio.coverUrl", d.coverUrl || "", "autoservicio"],
+  ]);
+
+  await db.auditLog.create({
+    data: { userId: session.user.id, action: "settings.update_autoservicio", entity: "Setting" },
+  });
+
+  revalidatePath("/admin/configuracion");
+  revalidatePath("/autoservicio");
+  return { ok: true, data: undefined };
+}
+
+// A diferencia de updateAutoservicioSettings (solo admins, desde Configuración), este
+// interruptor lo puede usar cualquier empleado logueado — pensado para apagar Autoservicio
+// rápido desde el local sin tener que ser administrador.
+export async function toggleAutoservicioEnabled(enabled: boolean): Promise<ActionResult> {
+  const session = await requireSession();
+
+  await upsertSettings([["autoservicio.enabled", String(enabled), "autoservicio"]]);
+
+  await db.auditLog.create({
+    data: {
+      userId: session.user.id,
+      action: "settings.toggle_autoservicio",
+      entity: "Setting",
+      metadata: JSON.stringify({ enabled }),
+    },
+  });
+
+  revalidatePath("/admin/configuracion");
+  revalidatePath("/autoservicio");
+  revalidatePath("/admin/desactivar-autoservicio");
+  return { ok: true, data: undefined };
+}
+
+// Mismo criterio que toggleAutoservicioEnabled: cualquier empleado logueado puede ajustar
+// la demora desde la página rápida, no hace falta el permiso settings.manage.
+export async function updateAutoservicioWaitMinutes(input: AutoservicioWaitMinutesInput): Promise<ActionResult> {
+  const session = await requireSession();
+  const parsed = autoservicioWaitMinutesSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  const d = parsed.data;
+
+  await upsertSettings([["autoservicio.waitMinutes", String(d.waitMinutes), "autoservicio"]]);
+
+  await db.auditLog.create({
+    data: {
+      userId: session.user.id,
+      action: "settings.update_autoservicio_wait",
+      entity: "Setting",
+      metadata: JSON.stringify({ waitMinutes: d.waitMinutes }),
+    },
+  });
+
+  revalidatePath("/admin/configuracion");
+  revalidatePath("/autoservicio");
+  revalidatePath("/admin/desactivar-autoservicio");
+  return { ok: true, data: undefined };
+}
+
+export async function togglePaymentMethod(id: string): Promise<ActionResult<{ enabled: boolean }>> {
+  const session = await requirePermission("settings.manage");
+
+  const method = await db.paymentMethodConfig.findUnique({ where: { id } });
+  if (!method) return { ok: false, error: "Método no encontrado" };
+
+  const updated = await db.paymentMethodConfig.update({
+    where: { id },
+    data: { enabled: !method.enabled },
+  });
+
+  await db.auditLog.create({
+    data: {
+      userId: session.user.id,
+      action: updated.enabled ? "settings.enable_payment_method" : "settings.disable_payment_method",
+      entity: "PaymentMethodConfig",
+      entityId: id,
+      metadata: JSON.stringify({ label: method.label }),
+    },
+  });
+
+  revalidatePath("/admin/configuracion");
+  revalidatePath("/admin/ventas");
+  return { ok: true, data: { enabled: updated.enabled } };
+}
+
+/** Crea (o cambia) el PIN que se pide para abrir la caja. Se guarda hasheado, nunca en texto. */
+export async function updateCashPin(pin: string): Promise<ActionResult> {
+  const session = await requirePermission("settings.manage");
+  const parsed = cashPinSchema.safeParse(pin);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+
+  const hash = await bcrypt.hash(parsed.data, 10);
+  await upsertSettings([[CASH_PIN_SETTING_KEY, hash, "cash"]]);
+
+  await db.auditLog.create({
+    data: { userId: session.user.id, action: "settings.update_cash_pin", entity: "Setting" },
+  });
+
+  revalidatePath("/admin/configuracion");
+  revalidatePath("/admin/caja");
+  return { ok: true, data: undefined };
+}
