@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DrinksOffer } from "@/components/autoservicio/drinks-offer";
 import { MenuAccordion } from "@/components/autoservicio/menu-accordion";
 import { InstagramIcon, WhatsAppIcon } from "@/components/autoservicio/brand-icons";
 import { PizzaIllustration } from "@/components/autoservicio/pizza-illustration";
@@ -38,7 +39,8 @@ import { HALF_AND_HALF_NAME } from "@/lib/half-and-half";
 import type { CartLine, SaleFlavor } from "@/components/sales/types";
 import type { ProductRow } from "@/components/products/types";
 
-const MENU_CATEGORY_NAMES = ["Promociones", "Pizzas", "Empanadas", "Parrilla", "Bebidas"];
+const DRINKS_CATEGORY = "Bebidas";
+const MENU_CATEGORY_NAMES = ["Promociones", "Pizzas", "Empanadas", "Parrilla", DRINKS_CATEGORY];
 
 const ORDER_TYPE_OPTIONS = [
   { value: "DELIVERY", label: "Delivery", icon: Bike },
@@ -181,6 +183,8 @@ export function AutoservicioClient({
   business: AutoservicioBusiness;
 }) {
   const [cart, setCart] = useState<CartLine[]>([]);
+  // Total al abrir la oferta de bebidas (null = cerrada), para saber si después subió.
+  const [drinksOfferFrom, setDrinksOfferFrom] = useState<number | null>(null);
   const [confirmed, setConfirmed] = useState<{
     displayNumber: string;
     total: number;
@@ -196,6 +200,7 @@ export function AutoservicioClient({
       })).filter((c) => c.products.length > 0),
     [products]
   );
+  const drinks = useMemo(() => products.filter((p) => p.categoryName === DRINKS_CATEGORY), [products]);
   const [orderType, setOrderType] = useState<"DELIVERY" | "TAKEAWAY">("DELIVERY");
   const [deliveryTiming, setDeliveryTiming] = useState<"ASAP" | "SCHEDULED">("ASAP");
   const [scheduledTime, setScheduledTime] = useState("");
@@ -351,6 +356,15 @@ export function AutoservicioClient({
     window.scrollTo({ top: 0 });
   }
 
+  // Si pagó en efectivo y agrega bebidas, lo que dijo que iba a pagar puede quedar corto.
+  const drinksNeedCash =
+    drinksOfferFrom !== null && !payWithMercadoPago && total > drinksOfferFrom && Number(cashTendered) < total;
+
+  function removeDrink(drink: ProductRow) {
+    const line = cart.find((l) => l.productId === drink.id);
+    if (line) updateQuantity(line.key, -1);
+  }
+
   function handleConfirmOrder() {
     setError(null);
     if (cart.length === 0) {
@@ -378,6 +392,11 @@ export function AutoservicioClient({
       return;
     }
 
+    if (drinks.length > 0) setDrinksOfferFrom(total);
+    else submitOrder();
+  }
+
+  function submitOrder() {
     startTransition(async () => {
       const res = await createSelfServiceOrder({
         customerName,
@@ -396,6 +415,7 @@ export function AutoservicioClient({
         })),
       });
 
+      setDrinksOfferFrom(null);
       if (!res.ok) {
         setError(res.error);
         return;
@@ -714,6 +734,22 @@ export function AutoservicioClient({
             </Button>
           </div>
         </section>
+
+        {drinksOfferFrom !== null && (
+          <DrinksOffer
+            drinks={drinks}
+            quantities={quantities}
+            total={total}
+            needsCash={drinksNeedCash}
+            cashTendered={cashTendered}
+            setCashTendered={setCashTendered}
+            isPending={isPending}
+            onAdd={(drink) => handleAdd(drink, [])}
+            onRemove={removeDrink}
+            onClose={() => setDrinksOfferFrom(null)}
+            onConfirm={submitOrder}
+          />
+        )}
 
         <section className="flex flex-col gap-4 rounded-3xl bg-card p-4 sm:p-5">
           {business.address && (
