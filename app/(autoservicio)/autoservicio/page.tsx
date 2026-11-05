@@ -5,6 +5,9 @@ import { AutoservicioClient } from "@/components/autoservicio/autoservicio-clien
 
 export const dynamic = "force-dynamic";
 
+// Portada que se usa mientras no se suba otra desde Configuración > Autoservicio.
+const DEFAULT_COVER_URL = "/pizza-rebanada-faltante-esta-cayendo-al-agua_1123417-2427.avif";
+
 const SETTING_KEYS = [
   "autoservicio.waitMinutes",
   "autoservicio.enabled",
@@ -50,7 +53,7 @@ export default async function AutoservicioPage() {
         name: businessName,
         address: settingsMap["business.address"] ?? "",
         phone: settingsMap["business.phone"] ?? "",
-        coverUrl: settingsMap["autoservicio.coverUrl"] ?? "",
+        coverUrl: settingsMap["autoservicio.coverUrl"] || DEFAULT_COVER_URL,
       }}
       products={products.map((p) => ({
         id: p.id,

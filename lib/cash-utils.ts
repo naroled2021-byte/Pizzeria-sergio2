@@ -50,3 +50,6 @@ export function summarizeMovements(movements: MovementLike[]) {
   }
   return totals;
 }
+
+// Lo que se muestra en lugar de un monto cuando la pantalla de caja tiene los montos ocultos.
+export const HIDDEN_AMOUNT = "••••••";

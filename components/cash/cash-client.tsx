@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowDownCircle, ArrowUpCircle, DoorOpen, Lock } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, DoorOpen, Eye, EyeOff, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { OpenRegisterCard } from "@/components/cash/open-register-card";
@@ -39,6 +39,15 @@ export function CashClient({
   const [editingMovement, setEditingMovement] = useState<CashMovementRow | null>(null);
   const [selectedClosureId, setSelectedClosureId] = useState<string | null>(null);
   const [isDeleting, startDeleting] = useTransition();
+  // Los montos arrancan ocultos cada vez que se entra a la pantalla.
+  const [hideAmounts, setHideAmounts] = useState(true);
+
+  const amountsToggle = (
+    <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => setHideAmounts((v) => !v)}>
+      {hideAmounts ? <Eye className="size-3.5" /> : <EyeOff className="size-3.5" />}
+      {hideAmounts ? "Mostrar montos" : "Ocultar montos"}
+    </Button>
+  );
 
   function handleDeleteMovement(movement: CashMovementRow) {
     if (!confirm(`¿Borrar este movimiento (${movement.description ?? movement.type})?`)) return;
@@ -59,8 +68,11 @@ export function CashClient({
         <OpenRegisterCard paymentMethods={paymentMethods} isAdmin={isAdmin} requiresPin={requiresPin} />
         {isAdmin && closedRegisters.length > 0 && (
           <div>
-            <h2 className="mb-3 text-sm font-medium text-muted-foreground">Historial de cierres</h2>
-            <ClosuresHistory closures={closedRegisters} onRowClick={setSelectedClosureId} />
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 className="text-sm font-medium text-muted-foreground">Historial de cierres</h2>
+              {amountsToggle}
+            </div>
+            <ClosuresHistory closures={closedRegisters} onRowClick={setSelectedClosureId} hideAmounts={hideAmounts} />
           </div>
         )}
         <ClosureDetailDialog
@@ -77,8 +89,16 @@ export function CashClient({
 
   return (
     <div className="flex flex-col gap-6">
-      <CashLimitEditor cashLimit={cashLimit} />
-      <CashSummaryCards register={openRegister} paymentMethods={paymentMethods} cashLimit={cashLimit} />
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <CashLimitEditor cashLimit={cashLimit} hideAmounts={hideAmounts} />
+        {amountsToggle}
+      </div>
+      <CashSummaryCards
+        register={openRegister}
+        paymentMethods={paymentMethods}
+        cashLimit={cashLimit}
+        hideAmounts={hideAmounts}
+      />
 
       <div className="flex flex-wrap items-center gap-2">
         <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setMovementDialog("INCOME")}>
@@ -106,13 +126,14 @@ export function CashClient({
           onEdit={setEditingMovement}
           onDelete={handleDeleteMovement}
           disabled={isDeleting}
+          hideAmounts={hideAmounts}
         />
       </div>
 
       {isAdmin && closedRegisters.length > 0 && (
         <div>
           <h2 className="mb-3 text-sm font-medium text-muted-foreground">Historial de cierres</h2>
-          <ClosuresHistory closures={closedRegisters} onRowClick={setSelectedClosureId} />
+          <ClosuresHistory closures={closedRegisters} onRowClick={setSelectedClosureId} hideAmounts={hideAmounts} />
         </div>
       )}
       <ClosureDetailDialog

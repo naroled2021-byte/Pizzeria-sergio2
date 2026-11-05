@@ -15,8 +15,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { updateCashLimit } from "@/lib/actions/cash-actions";
+import { HIDDEN_AMOUNT } from "@/lib/cash-utils";
 
-export function CashLimitEditor({ cashLimit }: { cashLimit: number | null }) {
+export function CashLimitEditor({ cashLimit, hideAmounts }: { cashLimit: number | null; hideAmounts?: boolean }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(cashLimit ? String(cashLimit) : "");
@@ -39,7 +40,9 @@ export function CashLimitEditor({ cashLimit }: { cashLimit: number | null }) {
     <>
       <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground" onClick={() => setOpen(true)}>
         <Settings2 className="size-3.5" />
-        {cashLimit ? `Límite: $${cashLimit.toLocaleString("es-AR")}` : "Configurar límite de efectivo"}
+        {cashLimit
+          ? `Límite: ${hideAmounts ? HIDDEN_AMOUNT : `$${cashLimit.toLocaleString("es-AR")}`}`
+          : "Configurar límite de efectivo"}
       </Button>
 
       <Dialog open={open} onOpenChange={setOpen}>

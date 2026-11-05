@@ -1,5 +1,6 @@
 import { ArrowDownCircle, ArrowUpCircle, Banknote, CreditCard, DoorOpen, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HIDDEN_AMOUNT } from "@/lib/cash-utils";
 import { currency } from "@/lib/format";
 import { CASH_MOVEMENT_TYPE, CASH_MOVEMENT_TYPE_LABEL } from "@/lib/constants";
 import type { CashMovementRow } from "@/components/cash/types";
@@ -17,6 +18,7 @@ export function MovementsList({
   onEdit,
   onDelete,
   disabled,
+  hideAmounts,
 }: {
   movements: CashMovementRow[];
   /** Si vienen, se muestran botones de editar/borrar — solo tiene sentido para la caja
@@ -24,6 +26,7 @@ export function MovementsList({
   onEdit?: (movement: CashMovementRow) => void;
   onDelete?: (movement: CashMovementRow) => void;
   disabled?: boolean;
+  hideAmounts?: boolean;
 }) {
   if (movements.length === 0) {
     return (
@@ -58,7 +61,7 @@ export function MovementsList({
             {m.type !== CASH_MOVEMENT_TYPE.MANUAL_OPEN && (
               <span className={`shrink-0 text-sm font-semibold tabular-nums ${isNegative ? "text-destructive" : ""}`}>
                 {isNegative ? "-" : "+"}
-                {currency.format(m.amount)}
+                {hideAmounts ? HIDDEN_AMOUNT : currency.format(m.amount)}
               </span>
             )}
             {isEditable && (

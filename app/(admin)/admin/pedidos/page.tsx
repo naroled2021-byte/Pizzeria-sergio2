@@ -2,6 +2,7 @@ import { requirePermission } from "@/lib/auth-helpers";
 import { getKanbanOrders } from "@/lib/queries/orders";
 import { getTicketSettings } from "@/lib/queries/settings";
 import { KanbanBoard } from "@/components/orders/kanban-board";
+import { itemDetailNames } from "@/lib/comanda-text";
 
 export default async function PedidosPage() {
   await requirePermission("orders.manage");
@@ -38,11 +39,11 @@ export default async function PedidosPage() {
             productName: it.product.name,
             quantity: it.quantity,
             unitPrice: it.unitPrice,
-            flavorNames: it.flavors.map((f) => f.flavor.name),
+            flavorNames: itemDetailNames(it.product, it.flavors.map((f) => f.flavor.name)),
           })),
           itemsSummary: o.items
             .map((it) => {
-              const flavorNames = it.flavors.map((f) => f.flavor.name);
+              const flavorNames = itemDetailNames(it.product, it.flavors.map((f) => f.flavor.name));
               return `${it.quantity}x ${it.product.name}${flavorNames.length ? ` (${flavorNames.join(", ")})` : ""}`;
             })
             .join(" · "),

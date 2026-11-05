@@ -13,6 +13,7 @@ export const BUSINESS_LINKS = {
 // Subtítulo y emoji de cada categoría en la carta de Autoservicio. Una categoría sin entrada
 // acá se muestra igual, solo con su nombre.
 export const MENU_CATEGORY_INFO: Record<string, { subtitle: string; emoji: string }> = {
+  Promociones: { subtitle: "Combos al mejor precio", emoji: "🏷️" },
   Pizzas: { subtitle: "Elegí tu pizza favorita", emoji: "🍕" },
   Empanadas: { subtitle: "Docena con los gustos que quieras", emoji: "🥟" },
   Parrilla: { subtitle: "Viernes, sábados y domingos", emoji: "🔥" },

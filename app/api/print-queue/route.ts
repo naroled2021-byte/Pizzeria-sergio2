@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { ORDER_STATUS, ORDER_CHANNEL } from "@/lib/constants";
-import { buildComandaLines } from "@/lib/comanda-text";
+import { buildComandaLines, itemDetailNames } from "@/lib/comanda-text";
 import { getTicketSettings } from "@/lib/queries/settings";
 
 const CHANNEL_PARAM: Record<string, string> = {
@@ -33,9 +33,8 @@ export async function GET(req: NextRequest) {
         where: {
           channel,
           printedAt: null,
-          // "Nuevos" (RECEIVED) todavía no lo confirmó nadie del local — recién se imprime
-          // cuando lo pasan a "En preparación" (o más adelante).
-          status: { notIn: [ORDER_STATUS.CANCELLED, ORDER_STATUS.RECEIVED] },
+          // Se imprime apenas entra, sin esperar a que alguien lo confirme en "Nuevos".
+          status: { not: ORDER_STATUS.CANCELLED },
           createdAt: { gte: since },
         },
         include: {
@@ -77,7 +76,7 @@ export async function GET(req: NextRequest) {
           productName: it.product.name,
           quantity: it.quantity,
           unitPrice: it.unitPrice,
-          flavorNames: it.flavors.map((f) => f.flavor.name),
+          flavorNames: itemDetailNames(it.product, it.flavors.map((f) => f.flavor.name)),
         })),
       },
       {

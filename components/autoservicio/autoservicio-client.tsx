@@ -36,7 +36,7 @@ import { SELF_SERVICE_DELIVERY_FEE } from "@/lib/constants";
 import type { CartLine, SaleFlavor } from "@/components/sales/types";
 import type { ProductRow } from "@/components/products/types";
 
-const MENU_CATEGORY_NAMES = ["Pizzas", "Empanadas", "Parrilla", "Bebidas"];
+const MENU_CATEGORY_NAMES = ["Promociones", "Pizzas", "Empanadas", "Parrilla", "Bebidas"];
 
 const ORDER_TYPE_OPTIONS = [
   { value: "DELIVERY", label: "Delivery", icon: Bike },
@@ -385,7 +385,7 @@ export function AutoservicioClient({
   const header = (
     <header>
       <div
-        className="relative h-52 overflow-hidden bg-neutral-900 bg-cover bg-center sm:h-64"
+        className="relative h-52 overflow-hidden bg-neutral-900 bg-cover bg-[position:center_22%] sm:h-64"
         style={business.coverUrl ? { backgroundImage: `url(${business.coverUrl})` } : undefined}
       >
         {!business.coverUrl && (

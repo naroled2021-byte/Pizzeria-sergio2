@@ -24,6 +24,14 @@ function wrapText(text: string, width: number): string[] {
   return lines.length > 0 ? lines : [""];
 }
 
+/** Lo que se detalla debajo de cada ítem en tickets y cocina: los gustos y, en las promociones,
+ *  qué lleva ("Promoción 3" sola no le dice nada a quien la prepara). */
+export function itemDetailNames(product: { name: string; description: string | null }, flavorNames: string[]): string[] {
+  return product.name.startsWith("Promoción") && product.description
+    ? [product.description, ...flavorNames]
+    : flavorNames;
+}
+
 export type ComandaLine =
   | { type: "divider" }
   | { type: "text"; text: string; right?: string; align?: "center"; big?: boolean };

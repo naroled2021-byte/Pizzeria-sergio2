@@ -1,12 +1,15 @@
+import { HIDDEN_AMOUNT } from "@/lib/cash-utils";
 import { currency } from "@/lib/format";
 import type { ClosedRegister } from "@/components/cash/types";
 
 export function ClosuresHistory({
   closures,
   onRowClick,
+  hideAmounts,
 }: {
   closures: ClosedRegister[];
   onRowClick?: (id: string) => void;
+  hideAmounts?: boolean;
 }) {
   if (closures.length === 0) {
     return (
@@ -32,6 +35,7 @@ export function ClosuresHistory({
         <tbody>
           {closures.map((c) => {
             const diff = c.difference ?? 0;
+            const money = (amount: number) => (hideAmounts ? HIDDEN_AMOUNT : currency.format(amount));
             return (
               <tr
                 key={c.id}
@@ -41,20 +45,20 @@ export function ClosuresHistory({
                 <td className="py-2">
                   {c.closedAt ? new Date(c.closedAt).toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" }) : "—"}
                 </td>
-                <td className="py-2 tabular-nums">{currency.format(c.openingAmount)}</td>
+                <td className="py-2 tabular-nums">{money(c.openingAmount)}</td>
                 <td className="py-2 tabular-nums">
-                  {c.closingAmountExpected != null ? currency.format(c.closingAmountExpected) : "—"}
+                  {c.closingAmountExpected != null ? money(c.closingAmountExpected) : "—"}
                 </td>
                 <td className="py-2 tabular-nums">
-                  {c.closingAmountDeclared != null ? currency.format(c.closingAmountDeclared) : "—"}
+                  {c.closingAmountDeclared != null ? money(c.closingAmountDeclared) : "—"}
                 </td>
                 <td
                   className={`py-2 font-medium tabular-nums ${
-                    Math.abs(diff) < 0.01 ? "text-muted-foreground" : diff > 0 ? "text-primary" : "text-destructive"
+                    hideAmounts || Math.abs(diff) < 0.01 ? "text-muted-foreground" : diff > 0 ? "text-primary" : "text-destructive"
                   }`}
                 >
-                  {diff >= 0 ? "+" : ""}
-                  {currency.format(diff)}
+                  {!hideAmounts && diff >= 0 ? "+" : ""}
+                  {money(diff)}
                 </td>
                 <td className="py-2 text-muted-foreground">{c.closedByName ?? "—"}</td>
               </tr>

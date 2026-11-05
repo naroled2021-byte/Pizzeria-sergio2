@@ -1,6 +1,7 @@
 import { getKanbanOrders } from "@/lib/queries/orders";
 import { ORDER_STATUS } from "@/lib/constants";
 import { KitchenBoard } from "@/components/cocina/kitchen-board";
+import { itemDetailNames } from "@/lib/comanda-text";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +29,7 @@ export default async function CocinaPage() {
           id: it.id,
           productName: it.product.name,
           quantity: it.quantity,
-          flavorNames: it.flavors.map((f) => f.flavor.name),
+          flavorNames: itemDetailNames(it.product, it.flavors.map((f) => f.flavor.name)),
         })),
       }))}
     />
