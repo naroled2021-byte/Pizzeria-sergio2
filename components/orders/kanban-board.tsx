@@ -46,7 +46,14 @@ function toTicketData(order: KanbanOrder): TicketData {
   };
 }
 
-type Column = { status: string; title: string; next: string | null; nextLabel: string | null; prev: string | null };
+type Column = {
+  status: string;
+  title: string;
+  next: string | null;
+  nextLabel: string | null;
+  prev: string | null;
+  alsoShows?: string[];
+};
 
 // Mostrador/Ventas lo carga el propio local, así que el pedido entra directo en "En
 // preparación" (y ya descontó stock al crearse).
@@ -62,26 +69,21 @@ const counterColumns: Column[] = [
   { status: ORDER_STATUS.DELIVERED, title: "Entregados", next: null, nextLabel: null, prev: ORDER_STATUS.READY },
 ];
 
-// Autoservicio llega solo, sin que nadie del local lo haya visto — por eso entra en
-// "Nuevos" primero. Recién cuando alguien lo pasa a "En preparación" se imprime el ticket
-// (vía el agente local) y se descuenta el stock (ver updateOrderStatus).
+// Autoservicio llega solo y se imprime al entrar (vía el agente local): de "Nuevos" pasa
+// directo a "Entregados", y ahí se descuenta el stock (ver updateOrderStatus). "Nuevos" también
+// muestra los que están en preparación o listos (de Cocina, o de antes de este cambio) para que
+// no queden fuera del tablero. "Volver" los deja en preparación y no en "Nuevos": al salir de
+// "Nuevos" se descuenta stock, y volver ahí lo descontaría dos veces.
 const selfServiceColumns: Column[] = [
-  { status: ORDER_STATUS.RECEIVED, title: "Nuevos", next: ORDER_STATUS.PREPARING, nextLabel: "Preparar", prev: null },
   {
-    status: ORDER_STATUS.PREPARING,
-    title: "En preparación",
-    next: ORDER_STATUS.READY,
-    nextLabel: "Listo",
-    prev: ORDER_STATUS.RECEIVED,
-  },
-  {
-    status: ORDER_STATUS.READY,
-    title: "Listo para entregar",
+    status: ORDER_STATUS.RECEIVED,
+    title: "Nuevos",
     next: ORDER_STATUS.DELIVERED,
     nextLabel: "Entregar",
-    prev: ORDER_STATUS.PREPARING,
+    prev: null,
+    alsoShows: [ORDER_STATUS.PREPARING, ORDER_STATUS.READY],
   },
-  { status: ORDER_STATUS.DELIVERED, title: "Entregados", next: null, nextLabel: null, prev: ORDER_STATUS.READY },
+  { status: ORDER_STATUS.DELIVERED, title: "Entregados", next: null, nextLabel: null, prev: ORDER_STATUS.PREPARING },
 ];
 
 // Preferencia de este dispositivo/pantalla, no del negocio — por eso se guarda en
@@ -251,7 +253,7 @@ function OrderBoardRow({
       </h2>
       <div className={`grid ${GRID_COLS_CLASS[columns.length] ?? GRID_COLS_CLASS[2]}`}>
         {columns.map((col) => {
-          const columnOrders = orders.filter((o) => o.status === col.status);
+          const columnOrders = orders.filter((o) => o.status === col.status || col.alsoShows?.includes(o.status));
           return (
             <div key={col.status} className="flex flex-col gap-3 rounded-2xl bg-muted/40 p-3">
               <div className="flex items-center justify-between px-1">

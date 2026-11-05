@@ -34,7 +34,8 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
   // que queda en "Nuevos" sin confirmar nunca llega a afectar el stock. Mostrador/Ventas se
   // crea directo en "En preparación" y ya descontó al crearse, así que esto nunca se dispara
   // para esos (la condición exige que ANTES estuviera en "Nuevos").
-  const shouldDeductStock = status === ORDER_STATUS.PREPARING && order.status === ORDER_STATUS.RECEIVED;
+  const shouldDeductStock =
+    (status === ORDER_STATUS.PREPARING || status === ORDER_STATUS.DELIVERED) && order.status === ORDER_STATUS.RECEIVED;
 
   await db.$transaction(async (tx) => {
     await tx.order.update({ where: { id: orderId }, data: { status } });
