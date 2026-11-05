@@ -7,6 +7,12 @@ import { Label } from "@/components/ui/label";
 import { currency } from "@/lib/format";
 import type { ProductRow } from "@/components/products/types";
 
+// Se reconocen por el nombre: el resto de las bebidas (litros, porrones) queda solo en la carta.
+const OFFER_SECTIONS = [
+  { title: "Latas de cerveza", match: /\blat(a|ón)\b/i },
+  { title: "Gaseosas", match: /coca|fanta|sprite|pepsi|manaos|aquarius/i },
+];
+
 /** Última pantalla antes de mandar el pedido. No usa el Dialog común porque ese se dibuja
  *  fuera de esta página y perdería su tema oscuro. */
 export function DrinksOffer({
@@ -55,39 +61,50 @@ export function DrinksOffer({
           </Button>
         </div>
 
-        <ul className="flex min-h-0 flex-col divide-y divide-border overflow-y-auto">
-          {drinks.map((drink) => {
-            const quantity = quantities[drink.id] ?? 0;
+        <div className="flex min-h-0 flex-col gap-3 overflow-y-auto">
+          {OFFER_SECTIONS.map((section) => {
+            const sectionDrinks = drinks.filter((drink) => section.match.test(drink.name));
+            if (sectionDrinks.length === 0) return null;
             return (
-              <li key={drink.id} className="flex items-center gap-3 py-2.5">
-                {drink.imageUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={drink.imageUrl} alt="" className="size-12 shrink-0 rounded-xl object-cover" />
-                )}
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium leading-tight">{drink.name}</p>
-                  <p className="text-sm font-semibold text-[#ff5a5f]">{currency.format(drink.price)}</p>
-                </div>
-                {quantity > 0 && (
-                  <>
-                    <Button
-                      variant="outline"
-                      size="icon-sm"
-                      aria-label={`Quitar ${drink.name}`}
-                      onClick={() => onRemove(drink)}
-                    >
-                      <Minus className="size-3.5" />
-                    </Button>
-                    <span className="w-5 text-center text-sm font-semibold tabular-nums">{quantity}</span>
-                  </>
-                )}
-                <Button size="icon-sm" aria-label={`Agregar ${drink.name}`} onClick={() => onAdd(drink)}>
-                  <Plus className="size-3.5" />
-                </Button>
-              </li>
+              <section key={section.title}>
+                <h3 className="text-sm font-bold text-muted-foreground">{section.title}</h3>
+                <ul className="flex flex-col divide-y divide-border">
+                  {sectionDrinks.map((drink) => {
+                    const quantity = quantities[drink.id] ?? 0;
+                    return (
+                      <li key={drink.id} className="flex items-center gap-3 py-2.5">
+                        {drink.imageUrl && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={drink.imageUrl} alt="" className="size-12 shrink-0 rounded-xl object-cover" />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium leading-tight">{drink.name}</p>
+                          <p className="text-sm font-semibold text-[#ff5a5f]">{currency.format(drink.price)}</p>
+                        </div>
+                        {quantity > 0 && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="icon-sm"
+                              aria-label={`Quitar ${drink.name}`}
+                              onClick={() => onRemove(drink)}
+                            >
+                              <Minus className="size-3.5" />
+                            </Button>
+                            <span className="w-5 text-center text-sm font-semibold tabular-nums">{quantity}</span>
+                          </>
+                        )}
+                        <Button size="icon-sm" aria-label={`Agregar ${drink.name}`} onClick={() => onAdd(drink)}>
+                          <Plus className="size-3.5" />
+                        </Button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
             );
           })}
-        </ul>
+        </div>
 
         {needsCash && (
           <div className="flex flex-col gap-1.5">
