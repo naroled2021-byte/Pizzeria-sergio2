@@ -30,6 +30,7 @@ import type { InventoryItemRow } from "@/components/inventory/types";
 
 type FormState = {
   name: string;
+  barcode: string;
   type: string;
   unit: string;
   minStock: string;
@@ -43,6 +44,7 @@ function initialFormState(item: InventoryItemRow | null): FormState {
   if (item) {
     return {
       name: item.name,
+      barcode: item.barcode ?? "",
       type: item.type,
       unit: item.unit,
       minStock: String(item.minStock),
@@ -54,6 +56,7 @@ function initialFormState(item: InventoryItemRow | null): FormState {
   }
   return {
     name: "",
+    barcode: "",
     type: "INGREDIENT",
     unit: "unidad",
     minStock: "",
@@ -107,6 +110,7 @@ function InventoryItemForm({
     const minStock = Number(form.minStock) || 0;
     const payload = {
       name: form.name,
+      barcode: form.barcode,
       type: form.type,
       unit: form.unit,
       minStock,
@@ -148,6 +152,21 @@ function InventoryItemForm({
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             required
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="barcode">Código de barras (opcional)</Label>
+          <Input
+            id="barcode"
+            autoComplete="off"
+            placeholder="Escaneá o escribí el código"
+            value={form.barcode}
+            onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
+            onKeyDown={(e) => {
+              // El lector de códigos manda Enter al terminar: no tiene que guardar el formulario.
+              if (e.key === "Enter") e.preventDefault();
+            }}
           />
         </div>
 

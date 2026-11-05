@@ -57,7 +57,8 @@ export function InventoryClient({
     return initialItems
       .filter((i) => {
         const status = getStockStatus(i.currentStock, i.minStock);
-        const matchesSearch = i.name.toLowerCase().includes(search.trim().toLowerCase());
+        const term = search.trim().toLowerCase();
+        const matchesSearch = i.name.toLowerCase().includes(term) || !!i.barcode?.toLowerCase().includes(term);
         const matchesType = typeFilter === "all" || i.type === typeFilter;
         const matchesStock =
           stockFilter === "all" || (stockFilter === ALERT ? status !== "NORMAL" && i.active : status === stockFilter);
@@ -129,7 +130,7 @@ export function InventoryClient({
           <div className="relative flex-1 sm:max-w-xs">
             <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Buscar ítem..."
+              placeholder="Buscar ítem o escanear código..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-8"

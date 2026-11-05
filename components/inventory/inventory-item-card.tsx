@@ -90,6 +90,7 @@ export function InventoryItemCard({
           <p className="truncate font-medium leading-tight">{item.name}</p>
           <p className="truncate text-xs text-muted-foreground">
             {INVENTORY_ITEM_TYPE_LABEL[item.type] ?? item.type}
+            {item.barcode && ` · ${item.barcode}`}
             {!item.active && " · Inactivo"}
           </p>
         </div>

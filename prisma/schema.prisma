@@ -126,6 +126,7 @@ model InventoryItem {
   name        String
   type        String   // FLAVOR | INGREDIENT | PACKAGING | BEVERAGE | SUPPLY | FINISHED_PRODUCT
   unit        String   // kg | g | l | ml | unidad
+  barcode     String?  @unique
   currentStock Float   @default(0)
   minStock    Float    @default(0)
   maxStock    Float    @default(0)

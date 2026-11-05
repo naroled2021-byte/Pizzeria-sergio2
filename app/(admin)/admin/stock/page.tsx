@@ -32,6 +32,7 @@ export default async function StockPage() {
           name: i.name,
           type: i.type,
           unit: i.unit,
+          barcode: i.barcode,
           currentStock: i.currentStock,
           minStock: i.minStock,
           maxStock: i.maxStock,

@@ -3,6 +3,7 @@ export type InventoryItemRow = {
   name: string;
   type: string;
   unit: string;
+  barcode: string | null;
   currentStock: number;
   minStock: number;
   maxStock: number;

@@ -17,6 +17,13 @@ import { INVENTORY_ITEM_TYPE } from "@/lib/constants";
 
 type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
 
+/** Mensaje de error si otro ítem ya usa ese código de barras (cada código identifica un solo ítem). */
+async function barcodeConflict(barcode: string | undefined, excludeId?: string): Promise<string | null> {
+  if (!barcode) return null;
+  const other = await db.inventoryItem.findUnique({ where: { barcode } });
+  return other && other.id !== excludeId ? `Ese código de barras ya lo usa "${other.name}"` : null;
+}
+
 export async function createInventoryItem(
   input: InventoryItemCreateInput
 ): Promise<ActionResult<{ id: string }>> {
@@ -25,11 +32,15 @@ export async function createInventoryItem(
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
   const data = parsed.data;
 
+  const conflict = await barcodeConflict(data.barcode);
+  if (conflict) return { ok: false, error: conflict };
+
   const item = await db.inventoryItem.create({
     data: {
       name: data.name,
       type: data.type,
       unit: data.unit,
+      barcode: data.barcode || null,
       currentStock: data.initialStock,
       minStock: data.minStock,
       maxStock: data.maxStock,
@@ -67,12 +78,16 @@ export async function updateInventoryItem(id: string, input: InventoryItemInput)
     return { ok: false, error: "Este ítem se edita desde el módulo de Sabores" };
   }
 
+  const conflict = await barcodeConflict(data.barcode, id);
+  if (conflict) return { ok: false, error: conflict };
+
   await db.inventoryItem.update({
     where: { id },
     data: {
       name: data.name,
       type: data.type,
       unit: data.unit,
+      barcode: data.barcode || null,
       minStock: data.minStock,
       maxStock: data.maxStock,
       cost: data.cost ?? 0,

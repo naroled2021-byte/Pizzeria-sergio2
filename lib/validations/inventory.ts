@@ -12,6 +12,7 @@ export const inventoryItemSchema = z.object({
   name: z.string().trim().min(2, "El nombre es muy corto").max(80),
   type: z.enum(creatableInventoryTypes),
   unit: z.string().trim().min(1, "Indicá una unidad").max(20),
+  barcode: z.string().trim().max(64, "El código de barras es muy largo").optional().or(z.literal("")),
   minStock: z.coerce.number().min(0, "No puede ser negativo"),
   maxStock: z.coerce.number().min(0, "No puede ser negativo"),
   cost: z.coerce.number().min(0, "No puede ser negativo").optional(),
