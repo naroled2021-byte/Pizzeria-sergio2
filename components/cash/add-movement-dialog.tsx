@@ -79,7 +79,8 @@ function MovementForm({
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
-  const description = reason === "Otro" ? customReason.trim() : reason;
+  const detail = customReason.trim();
+  const description = reason === "Otro" ? detail : detail ? `${reason}: ${detail}` : reason;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -142,16 +143,17 @@ function MovementForm({
           </Select>
         </div>
 
-        {reason === "Otro" && (
+        {(type === "EXPENSE" || reason === "Otro") && (
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="customReason">Detalle</Label>
+            <Label htmlFor="customReason">{reason === "Otro" ? "Detalle" : "Detalle (opcional)"}</Label>
             <Textarea
               id="customReason"
               rows={2}
               value={customReason}
               onChange={(e) => setCustomReason(e.target.value)}
-              placeholder="Especificá el motivo"
-              autoFocus
+              placeholder={type === "EXPENSE" ? "Ej: detergente" : "Especificá el motivo"}
+              required={reason === "Otro"}
+              autoFocus={reason === "Otro"}
             />
           </div>
         )}
