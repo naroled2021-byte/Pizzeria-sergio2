@@ -16,5 +16,5 @@ export type KanbanOrder = {
   notes: string | null;
   itemsSummary: string;
   paymentMethod: string | null;
-  orderItems: { productName: string; quantity: number; unitPrice: number; flavorNames: string[] }[];
+  orderItems: { id: string; productName: string; quantity: number; unitPrice: number; flavorNames: string[] }[];
 };

@@ -3,10 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/auth-helpers";
-import { ORDER_STATUS, PAYMENT_METHOD } from "@/lib/constants";
+import { CASH_MOVEMENT_TYPE, ORDER_STATUS, ORDER_TYPE, PAYMENT_METHOD } from "@/lib/constants";
 import { deductStockForSale } from "@/lib/stock-deduction";
 import { formatOrderNumber } from "@/lib/format";
 import { halvesFromNote } from "@/lib/half-and-half";
+import { rebuildNotes } from "@/lib/order-notes";
+import { updateOrderSchema, type UpdateOrderInput } from "@/lib/validations/order";
 
 type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -74,6 +76,108 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
   revalidatePath("/admin/pedidos");
   revalidatePath("/cocina");
   revalidatePath("/admin");
+  return { ok: true, data: undefined };
+}
+
+export async function updateOrder(input: UpdateOrderInput): Promise<ActionResult> {
+  const session = await requirePermission("orders.manage");
+  const parsed = updateOrderSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, error: parsed.error.issues[0].message };
+  const data = parsed.data;
+
+  const order = await db.order.findUnique({
+    where: { id: data.id },
+    include: {
+      items: true,
+      customer: true,
+      cashMovements: {
+        where: { type: { in: [CASH_MOVEMENT_TYPE.SALE_CASH, CASH_MOVEMENT_TYPE.SALE_DIGITAL] } },
+        include: { cashRegister: true },
+      },
+    },
+  });
+  if (!order) return { ok: false, error: "Pedido no encontrado" };
+  if (order.status === ORDER_STATUS.CANCELLED) {
+    return { ok: false, error: "Este pedido está cancelado" };
+  }
+
+  const newPrices = new Map(data.items.map((i) => [i.id, i.unitPrice]));
+  const items = order.items.map((i) => {
+    const unitPrice = newPrices.get(i.id) ?? i.unitPrice;
+    return { id: i.id, unitPrice, subtotal: unitPrice * i.quantity };
+  });
+  const subtotal = items.reduce((sum, i) => sum + i.subtotal, 0);
+  const discount = Math.min(order.discount, subtotal);
+  // El envío no entra a la caja del local: lo que había por encima de los productos se mantiene.
+  const extras = order.total - order.subtotal + order.discount;
+  const cashTotal = Math.max(subtotal - discount, 0);
+  const total = cashTotal + extras;
+
+  // Cambiar el monto de una caja ya cerrada descuadraría su cierre.
+  if (total !== order.total && order.cashMovements.some((m) => m.cashRegister.status === "CLOSED")) {
+    return { ok: false, error: "Este pedido está en una caja cerrada: no se le puede cambiar el precio" };
+  }
+
+  const notes = rebuildNotes(order.notes, {
+    // Si tiene cliente, el nombre se guarda en el cliente y no en las notas.
+    name: order.customerId ? "" : data.customerName,
+    observations: data.observations,
+    total,
+  });
+
+  await db.$transaction(async (tx) => {
+    await tx.order.update({
+      where: { id: order.id },
+      data: {
+        type: data.type,
+        tableNumber: data.type === ORDER_TYPE.DINE_IN ? order.tableNumber : null,
+        deliveryAddress: data.type === ORDER_TYPE.DELIVERY ? data.deliveryAddress : null,
+        subtotal,
+        discount,
+        total,
+        notes,
+      },
+    });
+    for (const item of items) {
+      await tx.orderItem.update({ where: { id: item.id }, data: { unitPrice: item.unitPrice, subtotal: item.subtotal } });
+    }
+    await tx.payment.updateMany({ where: { orderId: order.id }, data: { amount: total } });
+    await tx.cashMovement.updateMany({
+      where: { id: { in: order.cashMovements.map((m) => m.id) } },
+      data: { amount: cashTotal },
+    });
+    if (order.customer) {
+      await tx.customer.update({
+        where: { id: order.customer.id },
+        data: {
+          name: data.customerName || order.customer.name,
+          phone: data.customerPhone || order.customer.phone,
+          totalSpent: { increment: total - order.total },
+          points: { increment: Math.floor(total / 100) - Math.floor(order.total / 100) },
+        },
+      });
+    }
+    await tx.auditLog.create({
+      data: {
+        userId: session.user.id,
+        action: "order.update",
+        entity: "Order",
+        entityId: order.id,
+        metadata: JSON.stringify({
+          number: order.number,
+          before: { type: order.type, deliveryAddress: order.deliveryAddress, total: order.total, notes: order.notes },
+          after: { type: data.type, deliveryAddress: data.deliveryAddress, total, notes },
+        }),
+      },
+    });
+  });
+
+  revalidatePath("/admin/pedidos");
+  revalidatePath("/cocina");
+  revalidatePath("/admin");
+  revalidatePath("/admin/caja");
+  revalidatePath("/admin/ventas");
+  revalidatePath("/admin/reportes");
   return { ok: true, data: undefined };
 }
 

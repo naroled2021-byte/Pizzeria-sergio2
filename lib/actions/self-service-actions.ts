@@ -13,6 +13,7 @@ import {
 } from "@/lib/constants";
 import { formatOrderNumber } from "@/lib/format";
 import { dozenUnits } from "@/lib/flavor-quantities";
+import { cashPaymentNote } from "@/lib/order-notes";
 import { HALF_AND_HALF_CATEGORY, halfAndHalfNote } from "@/lib/half-and-half";
 import { dateKeyAR, startOfDayAR } from "@/lib/date-ar";
 
@@ -143,9 +144,7 @@ export async function createSelfServiceOrder(
   if (isMercadoPago) {
     paymentNote = "Paga por transferencia Mercado Pago — verificar que llegó";
   } else {
-    const cashTendered = data.cashTendered!;
-    const change = cashTendered - total;
-    paymentNote = `Paga con $${cashTendered.toLocaleString("es-AR")}${change >= 0 ? ` (vuelto $${change.toLocaleString("es-AR")})` : ""}`;
+    paymentNote = cashPaymentNote(data.cashTendered!, total);
   }
   // Solo el delivery se puede programar. Se valida acá (no solo en la página) que la hora
   // deje margen para preparar y llevar el pedido.

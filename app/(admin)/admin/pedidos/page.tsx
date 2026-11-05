@@ -37,6 +37,7 @@ export default async function PedidosPage() {
           notes: o.notes,
           paymentMethod: o.payments[0]?.method ?? null,
           orderItems: o.items.map((it) => ({
+            id: it.id,
             productName: itemDisplayName(it),
             quantity: it.quantity,
             unitPrice: it.unitPrice,

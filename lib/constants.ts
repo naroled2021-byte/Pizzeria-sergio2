@@ -258,6 +258,7 @@ export const AUDIT_ACTION_LABEL: Record<string, string> = {
   "order.self_service_create": "Venta (autoservicio)",
   "order.cancel": "Venta anulada",
   "order.status_change": "Cambio de estado de pedido",
+  "order.update": "Pedido editado",
   "order.payment_method_change": "Cambio de método de pago",
   "order.reprint": "Reimpresión de ticket",
   "product.create": "Producto creado",

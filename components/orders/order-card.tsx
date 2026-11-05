@@ -1,8 +1,8 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Ban, MapPin, MonitorSmartphone, Printer, Store, Truck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Ban, MapPin, MonitorSmartphone, Pencil, Printer, Store, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { EditOrderDialog } from "@/components/orders/edit-order-dialog";
 import { updateOrderStatus, updateOrderPaymentMethod } from "@/lib/actions/order-actions";
 import { cancelSale } from "@/lib/actions/sale-actions";
 import { currency, formatOrderNumber } from "@/lib/format";
@@ -44,6 +45,7 @@ export function OrderCard({
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [editing, setEditing] = useState(false);
   const TypeIcon = typeIcon[order.type as keyof typeof typeIcon] ?? Store;
   const displayNumber = formatOrderNumber(order.channel, order.channelNumber);
   const channelColor = ORDER_CHANNEL_COLOR[order.channel] ?? ORDER_CHANNEL_COLOR.COUNTER;
@@ -184,7 +186,7 @@ export function OrderCard({
             </Button>
           )}
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <Button
             variant="outline"
             size="sm"
@@ -193,6 +195,10 @@ export function OrderCard({
           >
             <Printer className="size-3.5" />
             Imprimir
+          </Button>
+          <Button variant="outline" size="sm" className="flex-1 gap-1.5" onClick={() => setEditing(true)}>
+            <Pencil className="size-3.5" />
+            Editar
           </Button>
           <Button
             variant="outline"
@@ -206,6 +212,8 @@ export function OrderCard({
           </Button>
         </div>
       </div>
+
+      <EditOrderDialog order={order} open={editing} onOpenChange={setEditing} />
     </div>
   );
 }
