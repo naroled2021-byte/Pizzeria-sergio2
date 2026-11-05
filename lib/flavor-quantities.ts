@@ -9,6 +9,16 @@ export function dozenUnits(product: { name: string; description: string | null }
   return match ? Number(match[1] ?? 1) * 12 : null;
 }
 
+/** Cuántas unidades se reparten entre los gustos; 0 si el producto no lleva gustos. */
+export function flavorLimit(product: {
+  name: string;
+  description: string | null;
+  allowsFlavors: boolean;
+  maxFlavors: number;
+}): number {
+  return product.allowsFlavors ? (dozenUnits(product) ?? product.maxFlavors) : 0;
+}
+
 /** ["Pollo", "Pollo", "Choclo"] -> ["2x Pollo", "Choclo"] */
 export function groupFlavorNames(names: string[]): string[] {
   const counts = new Map<string, number>();

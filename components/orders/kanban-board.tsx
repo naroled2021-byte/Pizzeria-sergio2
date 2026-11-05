@@ -11,7 +11,7 @@ import { logOrderReprint } from "@/lib/actions/order-actions";
 import { playNotificationSound } from "@/lib/notification-sound";
 import { ORDER_STATUS, ORDER_CHANNEL, ORDER_CHANNEL_COLOR, PAYMENT_METHOD_LABEL } from "@/lib/constants";
 import { formatOrderNumber } from "@/lib/format";
-import type { KanbanOrder } from "@/components/orders/types";
+import type { KanbanOrder, OrderCatalog } from "@/components/orders/types";
 
 // Mostrador/Ventas (COUNTER) imprimen 1 sola copia; Autoservicio (SELF_SERVICE) imprime 2 —
 // fijo por canal, no por la configuración general de Impresión (esa queda solo para las
@@ -94,9 +94,11 @@ const SOUND_SETTING_KEY = "pedidos.autoservicioSound";
 export function KanbanBoard({
   orders,
   ticketSettings,
+  catalog,
 }: {
   orders: KanbanOrder[];
   ticketSettings: TicketSettings;
+  catalog: OrderCatalog;
 }) {
   const router = useRouter();
   const knownIds = useRef<Set<string> | null>(null);
@@ -208,6 +210,7 @@ export function KanbanBoard({
           channel={ORDER_CHANNEL.COUNTER}
           columns={counterColumns}
           orders={counterOrders}
+          catalog={catalog}
           onManualPrint={handleManualPrint}
         />
         <OrderBoardRow
@@ -215,6 +218,7 @@ export function KanbanBoard({
           channel={ORDER_CHANNEL.SELF_SERVICE}
           columns={selfServiceColumns}
           orders={selfServiceOrders}
+          catalog={catalog}
           onManualPrint={handleManualPrint}
         />
       </div>
@@ -235,12 +239,14 @@ function OrderBoardRow({
   channel,
   columns,
   orders,
+  catalog,
   onManualPrint,
 }: {
   title: string;
   channel: string;
   columns: Column[];
   orders: KanbanOrder[];
+  catalog: OrderCatalog;
   onManualPrint: (order: KanbanOrder) => void;
 }) {
   const channelColor = ORDER_CHANNEL_COLOR[channel] ?? ORDER_CHANNEL_COLOR.COUNTER;
@@ -270,6 +276,7 @@ function OrderBoardRow({
                     <OrderCard
                       key={order.id}
                       order={order}
+                      catalog={catalog}
                       prevStatus={col.prev}
                       nextStatus={col.next}
                       nextLabel={col.nextLabel}

@@ -26,18 +26,20 @@ import {
   PAYMENT_METHOD,
   PAYMENT_METHOD_LABEL,
 } from "@/lib/constants";
-import type { KanbanOrder } from "@/components/orders/types";
+import type { KanbanOrder, OrderCatalog } from "@/components/orders/types";
 
 const typeIcon = { DINE_IN: Store, TAKEAWAY: MapPin, DELIVERY: Truck } as const;
 
 export function OrderCard({
   order,
+  catalog,
   prevStatus,
   nextStatus,
   nextLabel,
   onPrint,
 }: {
   order: KanbanOrder;
+  catalog: OrderCatalog;
   prevStatus: string | null;
   nextStatus: string | null;
   nextLabel: string | null;
@@ -213,7 +215,7 @@ export function OrderCard({
         </div>
       </div>
 
-      <EditOrderDialog order={order} open={editing} onOpenChange={setEditing} />
+      <EditOrderDialog order={order} catalog={catalog} open={editing} onOpenChange={setEditing} />
     </div>
   );
 }
