@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ChevronDown, Loader2 } from "lucide-react";
+import { Barcode, ChevronDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createInventoryItem, updateInventoryItem } from "@/lib/actions/inventory-actions";
+import { BarcodeLabel } from "@/components/inventory/barcode-label";
+import { generateInternalEan13, isValidEan13 } from "@/lib/barcode";
 import { creatableInventoryTypes } from "@/lib/validations/inventory";
 import { INVENTORY_ITEM_TYPE_LABEL, INVENTORY_UNIT_OPTIONS } from "@/lib/constants";
 import type { InventoryItemRow } from "@/components/inventory/types";
@@ -157,17 +159,29 @@ function InventoryItemForm({
 
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="barcode">Código de barras (opcional)</Label>
-          <Input
-            id="barcode"
-            autoComplete="off"
-            placeholder="Escaneá o escribí el código"
-            value={form.barcode}
-            onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
-            onKeyDown={(e) => {
-              // El lector de códigos manda Enter al terminar: no tiene que guardar el formulario.
-              if (e.key === "Enter") e.preventDefault();
-            }}
-          />
+          <div className="flex gap-2">
+            <Input
+              id="barcode"
+              autoComplete="off"
+              placeholder="Escaneá o escribí el código"
+              value={form.barcode}
+              onChange={(e) => setForm((f) => ({ ...f, barcode: e.target.value }))}
+              onKeyDown={(e) => {
+                // El lector de códigos manda Enter al terminar: no tiene que guardar el formulario.
+                if (e.key === "Enter") e.preventDefault();
+              }}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="shrink-0 gap-1.5"
+              onClick={() => setForm((f) => ({ ...f, barcode: generateInternalEan13() }))}
+            >
+              <Barcode className="size-4" />
+              Generar
+            </Button>
+          </div>
+          {isValidEan13(form.barcode.trim()) && <BarcodeLabel code={form.barcode.trim()} name={form.name} />}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
