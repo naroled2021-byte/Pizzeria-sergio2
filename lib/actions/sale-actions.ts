@@ -69,6 +69,9 @@ export async function createSale(
         subtotal,
         discount,
         total,
+        // Va en las notas y no como cliente, para no llenar Clientes de nombres sueltos sin
+        // teléfono. Pedidos, Cocina y el ticket ya muestran las notas del pedido.
+        notes: data.customerName ? `Nombre: ${data.customerName}` : null,
         items: {
           create: data.items.map((item) => {
             const product = productMap.get(item.productId)!;

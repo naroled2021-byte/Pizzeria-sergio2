@@ -21,6 +21,7 @@ export function ArticulosClient({
   const router = useRouter();
   const [cart, setCart] = useState<CartLine[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [customerName, setCustomerName] = useState("");
   const [paymentMethod, setPaymentMethod] = useState(paymentMethods[0]?.key ?? "");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -74,6 +75,7 @@ export function ArticulosClient({
     startTransition(async () => {
       const res = await createSale({
         customerId: "",
+        customerName,
         type: ORDER_TYPE.TAKEAWAY as never,
         tableNumber: "",
         deliveryAddress: "",
@@ -88,6 +90,7 @@ export function ArticulosClient({
       }
       toast.success(`Pedido #${res.data.displayNumber} confirmado — ${currency.format(res.data.total)}`);
       setCart([]);
+      setCustomerName("");
       setCartOpen(false);
       router.refresh();
     });
@@ -103,6 +106,8 @@ export function ArticulosClient({
         cart={cart}
         updateQuantity={updateQuantity}
         removeLine={removeLine}
+        customerName={customerName}
+        setCustomerName={setCustomerName}
         paymentMethods={paymentMethods}
         paymentMethod={paymentMethod}
         setPaymentMethod={setPaymentMethod}

@@ -3,6 +3,7 @@
 import { Loader2, Minus, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Sheet,
@@ -29,6 +30,8 @@ export function CartSheet({
   cart,
   updateQuantity,
   removeLine,
+  customerName,
+  setCustomerName,
   paymentMethods,
   paymentMethod,
   setPaymentMethod,
@@ -42,6 +45,8 @@ export function CartSheet({
   cart: CartLine[];
   updateQuantity: (key: string, delta: number) => void;
   removeLine: (key: string) => void;
+  customerName: string;
+  setCustomerName: (v: string) => void;
   paymentMethods: SalePaymentMethod[];
   paymentMethod: string;
   setPaymentMethod: (v: string) => void;
@@ -90,6 +95,18 @@ export function CartSheet({
               ))}
             </div>
           )}
+
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="customerName">Nombre (opcional)</Label>
+            <Input
+              id="customerName"
+              autoComplete="off"
+              maxLength={80}
+              placeholder="Ej: Juan"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+            />
+          </div>
 
           <div className="flex flex-col gap-1.5">
             <Label>Método de pago</Label>

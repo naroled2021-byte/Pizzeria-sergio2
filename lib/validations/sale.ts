@@ -9,6 +9,7 @@ export const saleItemSchema = z.object({
 export const saleSchema = z
   .object({
     customerId: z.string().optional().or(z.literal("")),
+    customerName: z.string().trim().max(80).optional().or(z.literal("")),
     type: z.enum(["DINE_IN", "TAKEAWAY", "DELIVERY"]),
     tableNumber: z.string().trim().max(20).optional().or(z.literal("")),
     deliveryAddress: z.string().trim().max(200).optional().or(z.literal("")),
