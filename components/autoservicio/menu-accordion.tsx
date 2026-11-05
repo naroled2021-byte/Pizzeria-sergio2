@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, Minus, Plus } from "lucide-react";
+import { Check, ChevronDown, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { currency } from "@/lib/format";
 import { dozenUnits } from "@/lib/flavor-quantities";
+import { HALF_AND_HALF_CATEGORY, HALF_AND_HALF_NAME } from "@/lib/half-and-half";
 import { MENU_CATEGORY_INFO } from "@/lib/business-links";
 import type { SaleFlavor } from "@/components/sales/types";
 import type { ProductRow } from "@/components/products/types";
@@ -17,12 +18,14 @@ export function MenuAccordion({
   flavors,
   quantities,
   onAdd,
+  onAddHalfAndHalf,
 }: {
   categories: MenuCategory[];
   flavors: SaleFlavor[];
   /** Unidades de cada producto que ya están en el pedido, para marcarlas en la carta. */
   quantities: Record<string, number>;
   onAdd: (product: ProductRow, flavorIds: string[]) => void;
+  onAddHalfAndHalf: (first: ProductRow, second: ProductRow) => void;
 }) {
   const [openCategory, setOpenCategory] = useState<string | null>(categories[0]?.name ?? null);
 
@@ -57,6 +60,13 @@ export function MenuAccordion({
 
             {open && (
               <ul className="divide-y divide-border bg-card">
+                {category.name === HALF_AND_HALF_CATEGORY && category.products.length >= 2 && (
+                  <HalfAndHalfItem
+                    pizzas={category.products}
+                    quantity={quantities[HALF_AND_HALF_NAME] ?? 0}
+                    onAdd={onAddHalfAndHalf}
+                  />
+                )}
                 {category.products.map((product) => (
                   <MenuItem
                     key={product.id}
@@ -72,6 +82,89 @@ export function MenuAccordion({
         );
       })}
     </div>
+  );
+}
+
+function HalfAndHalfItem({
+  pizzas,
+  quantity,
+  onAdd,
+}: {
+  pizzas: ProductRow[];
+  quantity: number;
+  onAdd: (first: ProductRow, second: ProductRow) => void;
+}) {
+  const [picking, setPicking] = useState(false);
+  const [selected, setSelected] = useState<ProductRow[]>([]);
+  const price = selected.length === 2 ? Math.max(selected[0].price, selected[1].price) : null;
+
+  function togglePizza(pizza: ProductRow) {
+    setSelected((prev) =>
+      prev.some((p) => p.id === pizza.id) ? prev.filter((p) => p.id !== pizza.id) : prev.length >= 2 ? prev : [...prev, pizza]
+    );
+  }
+
+  function confirm() {
+    onAdd(selected[0], selected[1]);
+    setSelected([]);
+    setPicking(false);
+  }
+
+  return (
+    <li className="px-4 py-3">
+      <div className="flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="font-medium leading-tight">{HALF_AND_HALF_NAME}</p>
+          <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+            Elegí 2 sabores. Pagás el precio del más caro.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setPicking((p) => !p)}
+          aria-label={`Agregar ${HALF_AND_HALF_NAME}`}
+          className={cn(
+            "relative flex size-11 shrink-0 items-center justify-center rounded-full text-white transition-colors",
+            picking ? "bg-white/15" : "bg-primary hover:brightness-110"
+          )}
+        >
+          <Plus className={cn("size-5 transition-transform", picking && "rotate-45")} />
+          {quantity > 0 && (
+            <span className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-white text-[11px] font-bold text-black">
+              {quantity}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {picking && (
+        <div className="mt-3 rounded-2xl bg-muted p-3">
+          <p className="mb-2 text-xs text-muted-foreground">Elegí 2 sabores ({selected.length}/2).</p>
+          <div className="flex flex-wrap gap-2">
+            {pizzas.map((pizza) => {
+              const isSelected = selected.some((p) => p.id === pizza.id);
+              return (
+                <button
+                  key={pizza.id}
+                  type="button"
+                  onClick={() => togglePizza(pizza)}
+                  className={cn(
+                    "flex items-center gap-1 rounded-full border px-3 py-1.5 text-sm transition-colors",
+                    isSelected ? "border-primary bg-primary text-white" : "border-border hover:border-primary"
+                  )}
+                >
+                  {isSelected && <Check className="size-3.5" />}
+                  {pizza.name} · {currency.format(pizza.price)}
+                </button>
+              );
+            })}
+          </div>
+          <Button className="mt-3 w-full" disabled={price === null} onClick={confirm}>
+            Agregar al pedido{price !== null && ` · ${currency.format(price)}`}
+          </Button>
+        </div>
+      )}
+    </li>
   );
 }
 

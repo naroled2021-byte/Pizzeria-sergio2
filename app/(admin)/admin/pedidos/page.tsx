@@ -3,6 +3,7 @@ import { getKanbanOrders } from "@/lib/queries/orders";
 import { getTicketSettings } from "@/lib/queries/settings";
 import { KanbanBoard } from "@/components/orders/kanban-board";
 import { itemDetailNames } from "@/lib/comanda-text";
+import { itemDisplayName } from "@/lib/half-and-half";
 
 export default async function PedidosPage() {
   await requirePermission("orders.manage");
@@ -36,15 +37,15 @@ export default async function PedidosPage() {
           notes: o.notes,
           paymentMethod: o.payments[0]?.method ?? null,
           orderItems: o.items.map((it) => ({
-            productName: it.product.name,
+            productName: itemDisplayName(it),
             quantity: it.quantity,
             unitPrice: it.unitPrice,
-            flavorNames: itemDetailNames(it.product, it.flavors.map((f) => f.flavor.name)),
+            flavorNames: itemDetailNames(it.product, it.flavors.map((f) => f.flavor.name), it.notes),
           })),
           itemsSummary: o.items
             .map((it) => {
-              const flavorNames = itemDetailNames(it.product, it.flavors.map((f) => f.flavor.name));
-              return `${it.quantity}x ${it.product.name}${flavorNames.length ? ` (${flavorNames.join(", ")})` : ""}`;
+              const flavorNames = itemDetailNames(it.product, it.flavors.map((f) => f.flavor.name), it.notes);
+              return `${it.quantity}x ${itemDisplayName(it)}${flavorNames.length ? ` (${flavorNames.join(", ")})` : ""}`;
             })
             .join(" · "),
         }))}

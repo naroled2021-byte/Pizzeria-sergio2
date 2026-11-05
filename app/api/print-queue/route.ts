@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { ORDER_STATUS, ORDER_CHANNEL } from "@/lib/constants";
 import { buildComandaLines, itemDetailNames } from "@/lib/comanda-text";
+import { itemDisplayName } from "@/lib/half-and-half";
 import { getTicketSettings } from "@/lib/queries/settings";
 
 const CHANNEL_PARAM: Record<string, string> = {
@@ -73,10 +74,10 @@ export async function GET(req: NextRequest) {
         total: o.total,
         paymentMethod: o.payments[0]?.method ?? null,
         items: o.items.map((it) => ({
-          productName: it.product.name,
+          productName: itemDisplayName(it),
           quantity: it.quantity,
           unitPrice: it.unitPrice,
-          flavorNames: itemDetailNames(it.product, it.flavors.map((f) => f.flavor.name)),
+          flavorNames: itemDetailNames(it.product, it.flavors.map((f) => f.flavor.name), it.notes),
         })),
       },
       {

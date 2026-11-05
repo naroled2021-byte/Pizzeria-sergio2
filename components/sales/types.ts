@@ -27,6 +27,7 @@ export type CartLine = {
   quantity: number;
   flavorIds: string[];
   flavorNames: string[];
+  halfProductId?: string;
 };
 
 export type TodaySale = {

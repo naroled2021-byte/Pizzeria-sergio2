@@ -16,7 +16,7 @@ export const selfServiceOrderSchema = z
     paymentMethod: z.enum(["CASH", "MERCADOPAGO"]).default("CASH"),
     cashTendered: z.coerce.number().positive("Indicá con cuánto pagás").optional(),
     observations: z.string().trim().max(300).optional().or(z.literal("")),
-    items: z.array(saleItemSchema).min(1, "Agregá al menos un producto"),
+    items: z.array(saleItemSchema.extend({ halfProductId: z.string().optional() })).min(1, "Agregá al menos un producto"),
   })
   .refine((data) => data.type !== "DELIVERY" || !!data.deliveryAddress?.trim(), {
     message: "Indicá la dirección de entrega",

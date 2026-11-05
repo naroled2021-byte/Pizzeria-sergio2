@@ -81,7 +81,7 @@ function HistoryBody({ customer }: { customer: CustomerRow }) {
                 <p className="truncate text-xs text-muted-foreground">
                   {new Date(order.createdAt).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" })}
                   {" · "}
-                  {order.items.map((it) => `${it.quantity}x ${it.product.name}`).join(", ")}
+                  {order.items.map((it) => `${it.quantity}x ${it.notes ?? it.product.name}`).join(", ")}
                 </p>
               </div>
               <span className="shrink-0 text-sm font-semibold tabular-nums">{currency.format(order.total)}</span>

@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { BUSINESS_LINKS } from "@/lib/business-links";
 import { SELF_SERVICE_DELIVERY_FEE } from "@/lib/constants";
 import { groupFlavorNames } from "@/lib/flavor-quantities";
+import { HALF_AND_HALF_NAME } from "@/lib/half-and-half";
 import type { CartLine, SaleFlavor } from "@/components/sales/types";
 import type { ProductRow } from "@/components/products/types";
 
@@ -252,7 +253,10 @@ export function AutoservicioClient({
   const itemCount = cart.reduce((sum, line) => sum + line.quantity, 0);
   const quantities = useMemo(() => {
     const map: Record<string, number> = {};
-    for (const line of cart) map[line.productId] = (map[line.productId] ?? 0) + line.quantity;
+    for (const line of cart) {
+      const key = line.halfProductId ? HALF_AND_HALF_NAME : line.productId;
+      map[key] = (map[key] ?? 0) + line.quantity;
+    }
     return map;
   }, [cart]);
   const deliveryFee = orderType === "DELIVERY" ? SELF_SERVICE_DELIVERY_FEE : 0;
@@ -262,7 +266,8 @@ export function AutoservicioClient({
     const names = groupFlavorNames(flavorIds.map((id) => flavors.find((f) => f.id === id)?.name ?? "").filter(Boolean));
     setCart((prev) => {
       // Un producto sin gustos que ya está en el pedido suma cantidad en vez de otra línea.
-      const existing = flavorIds.length === 0 && prev.find((l) => l.productId === product.id && l.flavorIds.length === 0);
+      const existing =
+        flavorIds.length === 0 && prev.find((l) => l.productId === product.id && l.flavorIds.length === 0 && !l.halfProductId);
       if (existing) {
         return prev.map((l) => (l.key === existing.key ? { ...l, quantity: l.quantity + 1 } : l));
       }
@@ -280,6 +285,23 @@ export function AutoservicioClient({
       ];
     });
     toast.success(`${product.name} agregado al pedido`);
+  }
+
+  function handleAddHalfAndHalf(first: ProductRow, second: ProductRow) {
+    setCart((prev) => [
+      ...prev,
+      {
+        key: crypto.randomUUID(),
+        productId: first.id,
+        halfProductId: second.id,
+        productName: HALF_AND_HALF_NAME,
+        unitPrice: Math.max(first.price, second.price),
+        quantity: 1,
+        flavorIds: [],
+        flavorNames: [`1/2 ${first.name}`, `1/2 ${second.name}`],
+      },
+    ]);
+    toast.success(`${HALF_AND_HALF_NAME} agregada al pedido`);
   }
 
   function updateQuantity(key: string, delta: number) {
@@ -366,7 +388,12 @@ export function AutoservicioClient({
         observations,
         paymentMethod: payWithMercadoPago ? "MERCADOPAGO" : "CASH",
         cashTendered: payWithMercadoPago ? undefined : (Number(cashTendered) as never),
-        items: cart.map((l) => ({ productId: l.productId, quantity: l.quantity, flavorIds: l.flavorIds })),
+        items: cart.map((l) => ({
+          productId: l.productId,
+          quantity: l.quantity,
+          flavorIds: l.flavorIds,
+          halfProductId: l.halfProductId,
+        })),
       });
 
       if (!res.ok) {
@@ -481,7 +508,13 @@ export function AutoservicioClient({
           </div>
         )}
 
-        <MenuAccordion categories={menuCategories} flavors={flavors} quantities={quantities} onAdd={handleAdd} />
+        <MenuAccordion
+          categories={menuCategories}
+          flavors={flavors}
+          quantities={quantities}
+          onAdd={handleAdd}
+          onAddHalfAndHalf={handleAddHalfAndHalf}
+        />
 
         <section ref={checkoutRef} id="tu-pedido" className="scroll-mt-4 rounded-3xl bg-card p-4 sm:p-5">
           <h2 className="flex items-center gap-2 text-lg font-bold">

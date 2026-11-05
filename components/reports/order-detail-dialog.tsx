@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { fetchOrderDetail } from "@/lib/actions/report-actions";
 import { currency, formatOrderNumber } from "@/lib/format";
+import { itemDisplayName } from "@/lib/half-and-half";
 import { ORDER_TYPE_LABEL, ORDER_STATUS_LABEL, ORDER_STATUS_COLOR, PAYMENT_METHOD_LABEL } from "@/lib/constants";
 
 /** Detalle completo de un pedido de reportes (qué tenía, a quién, por qué total) — se abre
@@ -92,8 +93,9 @@ function DetailBody({ orderId }: { orderId: string }) {
           <div key={it.id} className="flex items-start justify-between gap-2 text-sm">
             <div className="min-w-0">
               <p>
-                {it.quantity}x {it.product.name}
+                {it.quantity}x {itemDisplayName(it)}
               </p>
+              {it.notes && <p className="text-xs text-muted-foreground">{it.notes}</p>}
               {it.flavors.length > 0 && (
                 <p className="truncate text-xs text-muted-foreground">
                   {it.flavors.map((f) => f.flavor.name).join(" + ")}

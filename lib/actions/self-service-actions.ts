@@ -13,6 +13,7 @@ import {
 } from "@/lib/constants";
 import { formatOrderNumber } from "@/lib/format";
 import { dozenUnits } from "@/lib/flavor-quantities";
+import { HALF_AND_HALF_CATEGORY, halfAndHalfNote } from "@/lib/half-and-half";
 import { dateKeyAR, startOfDayAR } from "@/lib/date-ar";
 
 type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
@@ -92,8 +93,11 @@ export async function createSelfServiceOrder(
     return { ok: false, error: "El Autoservicio está cerrado en este momento" };
   }
 
-  const productIds = data.items.map((i) => i.productId);
-  const products = await db.product.findMany({ where: { id: { in: productIds }, active: true } });
+  const productIds = data.items.flatMap((i) => (i.halfProductId ? [i.productId, i.halfProductId] : [i.productId]));
+  const products = await db.product.findMany({
+    where: { id: { in: productIds }, active: true },
+    include: { category: true },
+  });
   const productMap = new Map(products.map((p) => [p.id, p]));
 
   for (const item of data.items) {
@@ -103,12 +107,27 @@ export async function createSelfServiceOrder(
     if (dozen ? item.flavorIds.length !== dozen : item.flavorIds.length > product.maxFlavors) {
       return { ok: false, error: `Revisá los gustos de ${product.name}` };
     }
+    if (item.halfProductId) {
+      const half = productMap.get(item.halfProductId);
+      const bothPizzas = [product, half].every((p) => p?.category.name === HALF_AND_HALF_CATEGORY);
+      if (!bothPizzas || half?.id === product.id) {
+        return { ok: false, error: "Revisá la pizza mitad y mitad" };
+      }
+    }
   }
 
-  const subtotal = data.items.reduce((sum, item) => {
-    const product = productMap.get(item.productId)!;
-    return sum + product.price * item.quantity;
-  }, 0);
+  // Nunca se confía en el precio del cliente: la mitad y mitad se cobra al sabor más caro.
+  const lines = data.items.map((item) => {
+    const first = productMap.get(item.productId)!;
+    const second = item.halfProductId ? productMap.get(item.halfProductId)! : null;
+    return {
+      ...item,
+      product: second && second.price > first.price ? second : first,
+      notes: second ? halfAndHalfNote(first.name, second.name) : null,
+    };
+  });
+
+  const subtotal = lines.reduce((sum, line) => sum + line.product.price * line.quantity, 0);
   const deliveryFee = data.type === "DELIVERY" ? SELF_SERVICE_DELIVERY_FEE : 0;
   const total = subtotal + deliveryFee;
 
@@ -202,19 +221,15 @@ export async function createSelfServiceOrder(
         total,
         notes,
         items: {
-          create: data.items.map((item) => {
-            const product = productMap.get(item.productId)!;
-            return {
-              productId: item.productId,
-              quantity: item.quantity,
-              unitPrice: product.price,
-              subtotal: product.price * item.quantity,
-              format: product.allowsFlavors ? product.name : null,
-              flavors: item.flavorIds.length
-                ? { create: item.flavorIds.map((flavorId) => ({ flavorId })) }
-                : undefined,
-            };
-          }),
+          create: lines.map(({ product, quantity, notes, flavorIds }) => ({
+            productId: product.id,
+            quantity,
+            unitPrice: product.price,
+            subtotal: product.price * quantity,
+            notes,
+            format: product.allowsFlavors ? product.name : null,
+            flavors: flavorIds.length ? { create: flavorIds.map((flavorId) => ({ flavorId })) } : undefined,
+          })),
         },
       },
     });

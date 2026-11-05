@@ -2,6 +2,7 @@ import { getKanbanOrders } from "@/lib/queries/orders";
 import { ORDER_STATUS } from "@/lib/constants";
 import { KitchenBoard } from "@/components/cocina/kitchen-board";
 import { itemDetailNames } from "@/lib/comanda-text";
+import { itemDisplayName } from "@/lib/half-and-half";
 
 export const dynamic = "force-dynamic";
 
@@ -27,9 +28,9 @@ export default async function CocinaPage() {
         notes: o.notes,
         items: o.items.map((it) => ({
           id: it.id,
-          productName: it.product.name,
+          productName: itemDisplayName(it),
           quantity: it.quantity,
-          flavorNames: itemDetailNames(it.product, it.flavors.map((f) => f.flavor.name)),
+          flavorNames: itemDetailNames(it.product, it.flavors.map((f) => f.flavor.name), it.notes),
         })),
       }))}
     />

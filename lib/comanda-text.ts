@@ -2,6 +2,7 @@ import { ORDER_TYPE_LABEL, PAYMENT_METHOD_LABEL } from "@/lib/constants";
 import { currency, formatOrderNumber } from "@/lib/format";
 import { formatDateTimeAR } from "@/lib/date-ar";
 import { groupFlavorNames } from "@/lib/flavor-quantities";
+import { halvesFromNote } from "@/lib/half-and-half";
 
 // Ancho usado solo para decidir DÓNDE cortar un texto largo en varias líneas (direcciones,
 // notas, lista de sabores) — no para alinear ni centrar: eso lo hace el script que imprime,
@@ -27,7 +28,13 @@ function wrapText(text: string, width: number): string[] {
 
 /** Lo que se detalla debajo de cada ítem en tickets y cocina: los gustos y, en las promociones,
  *  qué lleva ("Promoción 3" sola no le dice nada a quien la prepara). */
-export function itemDetailNames(product: { name: string; description: string | null }, flavorNames: string[]): string[] {
+export function itemDetailNames(
+  product: { name: string; description: string | null },
+  flavorNames: string[],
+  itemNotes: string | null
+): string[] {
+  const halves = halvesFromNote(itemNotes);
+  if (halves.length > 0) return halves.map((name) => `1/2 ${name}`);
   const flavors = groupFlavorNames(flavorNames);
   return product.name.startsWith("Promoción") && product.description
     ? [product.description, ...flavors]

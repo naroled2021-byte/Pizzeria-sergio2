@@ -6,6 +6,7 @@ import { requirePermission } from "@/lib/auth-helpers";
 import { ORDER_STATUS, PAYMENT_METHOD } from "@/lib/constants";
 import { deductStockForSale } from "@/lib/stock-deduction";
 import { formatOrderNumber } from "@/lib/format";
+import { halvesFromNote } from "@/lib/half-and-half";
 
 type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
 
@@ -37,12 +38,22 @@ export async function updateOrderStatus(orderId: string, status: string): Promis
   const shouldDeductStock =
     (status === ORDER_STATUS.PREPARING || status === ORDER_STATUS.DELIVERED) && order.status === ORDER_STATUS.RECEIVED;
 
+  // Una pizza mitad y mitad descuenta media receta de cada sabor.
+  const halfNames = shouldDeductStock ? order.items.flatMap((i) => halvesFromNote(i.notes)) : [];
+  const halfProducts = halfNames.length > 0 ? await db.product.findMany({ where: { name: { in: halfNames } } }) : [];
+  const stockItems = order.items.flatMap((i) => {
+    const halves = halvesFromNote(i.notes).map((name) => halfProducts.find((p) => p.name === name));
+    return halves.length > 0 && halves.every(Boolean)
+      ? halves.map((p) => ({ productId: p!.id, quantity: i.quantity / 2 }))
+      : [{ productId: i.productId, quantity: i.quantity }];
+  });
+
   await db.$transaction(async (tx) => {
     await tx.order.update({ where: { id: orderId }, data: { status } });
     if (shouldDeductStock) {
       await deductStockForSale(
         tx,
-        order.items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
+        stockItems,
         formatOrderNumber(order.channel, order.channelNumber),
         order.id,
         session.user.id
