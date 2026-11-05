@@ -33,6 +33,7 @@ import { currency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { BUSINESS_LINKS } from "@/lib/business-links";
 import { SELF_SERVICE_DELIVERY_FEE } from "@/lib/constants";
+import { groupFlavorNames } from "@/lib/flavor-quantities";
 import type { CartLine, SaleFlavor } from "@/components/sales/types";
 import type { ProductRow } from "@/components/products/types";
 
@@ -258,7 +259,7 @@ export function AutoservicioClient({
   const total = subtotal + deliveryFee;
 
   function handleAdd(product: ProductRow, flavorIds: string[]) {
-    const names = flavorIds.map((id) => flavors.find((f) => f.id === id)?.name ?? "").filter(Boolean);
+    const names = groupFlavorNames(flavorIds.map((id) => flavors.find((f) => f.id === id)?.name ?? "").filter(Boolean));
     setCart((prev) => {
       // Un producto sin gustos que ya está en el pedido suma cantidad en vez de otra línea.
       const existing = flavorIds.length === 0 && prev.find((l) => l.productId === product.id && l.flavorIds.length === 0);

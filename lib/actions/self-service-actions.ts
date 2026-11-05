@@ -12,6 +12,7 @@ import {
   SELF_SERVICE_DELIVERY_FEE,
 } from "@/lib/constants";
 import { formatOrderNumber } from "@/lib/format";
+import { dozenUnits } from "@/lib/flavor-quantities";
 import { dateKeyAR, startOfDayAR } from "@/lib/date-ar";
 
 type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
@@ -96,7 +97,12 @@ export async function createSelfServiceOrder(
   const productMap = new Map(products.map((p) => [p.id, p]));
 
   for (const item of data.items) {
-    if (!productMap.has(item.productId)) return { ok: false, error: "Hay un producto inválido en el pedido" };
+    const product = productMap.get(item.productId);
+    if (!product) return { ok: false, error: "Hay un producto inválido en el pedido" };
+    const dozen = product.allowsFlavors ? dozenUnits(product) : null;
+    if (dozen ? item.flavorIds.length !== dozen : item.flavorIds.length > product.maxFlavors) {
+      return { ok: false, error: `Revisá los gustos de ${product.name}` };
+    }
   }
 
   const subtotal = data.items.reduce((sum, item) => {
@@ -217,9 +223,9 @@ export async function createSelfServiceOrder(
       data: { orderId: order.id, method: isMercadoPago ? PAYMENT_METHOD.MERCADOPAGO : PAYMENT_METHOD.CASH, amount: total },
     });
 
-    // El stock se descuenta recién cuando alguien del local pasa el pedido a "En
-    // preparación" (ver updateOrderStatus), no acá — así un pedido que nunca se confirma no
-    // llega a afectar el stock.
+    // El stock se descuenta recién cuando alguien del local saca el pedido de "Nuevos"
+    // (ver updateOrderStatus), no acá — así un pedido que nunca se confirma no llega a
+    // afectar el stock.
 
     const openRegister = await tx.cashRegister.findFirst({ where: { status: "OPEN" } });
     if (openRegister) {
