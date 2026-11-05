@@ -50,7 +50,7 @@ export function SalesClient({
   const [cart, setCart] = useState<CartLine[]>([]);
   const [pendingFlavorProduct, setPendingFlavorProduct] = useState<SaleProduct | null>(null);
   const [orderType, setOrderType] = useState<string>("DINE_IN");
-  const [tableNumber, setTableNumber] = useState("");
+  const [customerName, setCustomerName] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
   const [customers, setCustomers] = useState(initialCustomers);
   const [customerId, setCustomerId] = useState("none");
@@ -146,7 +146,7 @@ export function SalesClient({
   function resetCart() {
     setCart([]);
     setDiscount("0");
-    setTableNumber("");
+    setCustomerName("");
     setDeliveryAddress("");
     setCustomerId("none");
   }
@@ -166,7 +166,7 @@ export function SalesClient({
       const res = await createSale({
         customerId: customerId === "none" ? "" : customerId,
         type: orderType as never,
-        tableNumber,
+        customerName,
         deliveryAddress,
         paymentMethod,
         discount: discountValue as never,
@@ -248,8 +248,8 @@ export function SalesClient({
 
           {orderType === "DINE_IN" && (
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="tableNumber">Mesa (opcional)</Label>
-              <Input id="tableNumber" value={tableNumber} onChange={(e) => setTableNumber(e.target.value)} />
+              <Label htmlFor="customerName">Nombre del cliente</Label>
+              <Input id="customerName" maxLength={80} value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
             </div>
           )}
 
