@@ -303,7 +303,7 @@ function ProductForm({
               id="maxFlavors"
               type="number"
               min="1"
-              max="10"
+              max="12"
               value={form.maxFlavors}
               onChange={(e) => setForm((f) => ({ ...f, maxFlavors: e.target.value }))}
             />

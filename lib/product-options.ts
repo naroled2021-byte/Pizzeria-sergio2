@@ -13,13 +13,25 @@ const FRIES_OPTIONS: ProductOptions = {
   choices: [...FRIES_SEASONINGS],
 };
 
+const CHICKEN_OPTIONS: ProductOptions = {
+  label: "Salsa",
+  question: "¿Con qué salsa? Podés elegir más de una.",
+  choices: ["Chimichurri", "Criolla", "Limón"],
+  multiple: true,
+};
+
+const CHORIPAN_OPTIONS: ProductOptions = {
+  label: "Salsa",
+  question: "¿Con qué salsa? Podés elegir más de una.",
+  choices: ["Chimichurri", "Criolla"],
+  multiple: true,
+};
+
 export const PRODUCT_OPTIONS: Record<string, ProductOptions> = {
-  "Mitad de pollo": {
-    label: "Salsa",
-    question: "¿Con qué salsa? Podés elegir más de una.",
-    choices: ["Chimichurri", "Criolla", "Limón"],
-    multiple: true,
-  },
+  "Pollo entero": CHICKEN_OPTIONS,
+  "Mitad de pollo": CHICKEN_OPTIONS,
+  "Choripán x 1": CHORIPAN_OPTIONS,
+  "Choripán x 5": CHORIPAN_OPTIONS,
   "Papas fritas chicas": FRIES_OPTIONS,
   "Papas fritas grandes": FRIES_OPTIONS,
 };

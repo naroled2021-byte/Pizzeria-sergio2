@@ -14,7 +14,7 @@ export const productSchema = z.object({
     .optional()
     .or(z.literal("")),
   allowsFlavors: z.boolean().default(false),
-  maxFlavors: z.coerce.number().int().min(0).max(10).default(0),
+  maxFlavors: z.coerce.number().int().min(0).max(12).default(0),
   active: z.boolean().default(true),
 });
 
