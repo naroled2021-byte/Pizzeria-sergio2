@@ -6,7 +6,13 @@ export const productSchema = z.object({
   categoryId: z.string().min(1, "Elegí una categoría"),
   price: z.coerce.number().positive("El precio debe ser mayor a 0"),
   cost: z.coerce.number().min(0, "El costo no puede ser negativo").optional(),
-  imageUrl: z.string().trim().url("URL inválida").optional().or(z.literal("")),
+  // Las fotos subidas desde el panel quedan como "/uploads/...", no como una URL completa.
+  imageUrl: z
+    .string()
+    .trim()
+    .refine((v) => v === "" || v.startsWith("/") || /^https?:\/\//.test(v), "URL inválida")
+    .optional()
+    .or(z.literal("")),
   allowsFlavors: z.boolean().default(false),
   maxFlavors: z.coerce.number().int().min(0).max(10).default(0),
   active: z.boolean().default(true),
