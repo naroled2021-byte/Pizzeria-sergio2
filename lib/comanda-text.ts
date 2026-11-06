@@ -1,6 +1,7 @@
 import { ORDER_TYPE_LABEL, PAYMENT_METHOD_LABEL } from "@/lib/constants";
 import { currency, formatOrderNumber } from "@/lib/format";
 import { formatDateTimeAR } from "@/lib/date-ar";
+import { detailFromNote } from "@/lib/chicken-promo";
 import { groupFlavorNames } from "@/lib/flavor-quantities";
 import { halvesFromNote } from "@/lib/half-and-half";
 
@@ -35,6 +36,7 @@ export function itemDetailNames(
 ): string[] {
   const halves = halvesFromNote(itemNotes);
   if (halves.length > 0) return halves.map((name) => `1/2 ${name}`);
+  if (itemNotes) return detailFromNote(itemNotes);
   const flavors = groupFlavorNames(flavorNames);
   return product.name.startsWith("Promoción") && product.description
     ? [product.description, ...flavors]

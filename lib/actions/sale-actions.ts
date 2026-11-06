@@ -15,6 +15,7 @@ import {
 } from "@/lib/constants";
 import { deductStockForSale } from "@/lib/stock-deduction";
 import { formatOrderNumber } from "@/lib/format";
+import { resolveItemChoices } from "@/lib/item-choices";
 import { dateKeyAR } from "@/lib/date-ar";
 
 type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
@@ -35,10 +36,10 @@ export async function createSale(
     if (!productMap.has(item.productId)) return { ok: false, error: "Hay un producto inválido en el carrito" };
   }
 
-  const subtotal = data.items.reduce((sum, item) => {
-    const product = productMap.get(item.productId)!;
-    return sum + product.price * item.quantity;
-  }, 0);
+  const choices = await resolveItemChoices(data.items, products);
+  if (!choices.ok) return choices;
+
+  const subtotal = data.items.reduce((sum, item, i) => sum + choices.items[i].unitPrice * item.quantity, 0);
   const discount = Math.min(data.discount, subtotal);
   const deliveryFee = data.type === "DELIVERY" ? SELF_SERVICE_DELIVERY_FEE : 0;
   const cashTotal = Math.max(subtotal - discount, 0);
@@ -73,13 +74,15 @@ export async function createSale(
         // teléfono. Pedidos, Cocina y el ticket ya muestran las notas del pedido.
         notes: data.customerName ? `Nombre: ${data.customerName}` : null,
         items: {
-          create: data.items.map((item) => {
+          create: data.items.map((item, i) => {
             const product = productMap.get(item.productId)!;
+            const { unitPrice, notes } = choices.items[i];
             return {
               productId: item.productId,
               quantity: item.quantity,
-              unitPrice: product.price,
-              subtotal: product.price * item.quantity,
+              unitPrice,
+              subtotal: unitPrice * item.quantity,
+              notes,
               format: product.allowsFlavors ? product.name : null,
               flavors: item.flavorIds.length
                 ? { create: item.flavorIds.map((flavorId) => ({ flavorId })) }

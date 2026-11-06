@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { currency } from "@/lib/format";
 import { FlavorCounter, idsFromCounts, type FlavorCounts } from "@/components/sales/flavor-counter";
+import { ProductChoiceItem } from "@/components/autoservicio/product-choice-item";
+import { hasProductChoices } from "@/components/sales/product-choice-dialog";
 import { dozenUnits } from "@/lib/flavor-quantities";
 import { HALF_AND_HALF_CATEGORY, HALF_AND_HALF_NAME } from "@/lib/half-and-half";
 import { MENU_CATEGORY_INFO } from "@/lib/business-links";
-import type { SaleFlavor } from "@/components/sales/types";
+import type { CartLine, SaleFlavor } from "@/components/sales/types";
 import type { ProductRow } from "@/components/products/types";
 
 export type MenuCategory = { name: string; products: ProductRow[] };
@@ -17,16 +19,20 @@ export type MenuCategory = { name: string; products: ProductRow[] };
 export function MenuAccordion({
   categories,
   flavors,
+  drinks,
   quantities,
   onAdd,
   onAddHalfAndHalf,
+  onAddChoiceLine,
 }: {
   categories: MenuCategory[];
   flavors: SaleFlavor[];
+  drinks: ProductRow[];
   /** Unidades de cada producto que ya están en el pedido, para marcarlas en la carta. */
   quantities: Record<string, number>;
   onAdd: (product: ProductRow, flavorIds: string[]) => void;
   onAddHalfAndHalf: (first: ProductRow, second: ProductRow) => void;
+  onAddChoiceLine: (line: CartLine) => void;
 }) {
   const [openCategory, setOpenCategory] = useState<string | null>(categories[0]?.name ?? null);
 
@@ -68,15 +74,25 @@ export function MenuAccordion({
                     onAdd={onAddHalfAndHalf}
                   />
                 )}
-                {category.products.map((product) => (
-                  <MenuItem
-                    key={product.id}
-                    product={product}
-                    flavors={flavors}
-                    quantity={quantities[product.id] ?? 0}
-                    onAdd={onAdd}
-                  />
-                ))}
+                {category.products.map((product) =>
+                  hasProductChoices(product) ? (
+                    <ProductChoiceItem
+                      key={product.id}
+                      product={product}
+                      drinks={drinks}
+                      quantity={quantities[product.id] ?? 0}
+                      onAdd={onAddChoiceLine}
+                    />
+                  ) : (
+                    <MenuItem
+                      key={product.id}
+                      product={product}
+                      flavors={flavors}
+                      quantity={quantities[product.id] ?? 0}
+                      onAdd={onAdd}
+                    />
+                  )
+                )}
               </ul>
             )}
           </section>

@@ -1,5 +1,5 @@
 // Pizza mitad y mitad: el ítem se guarda con la pizza más cara (de ahí sale el precio) y las
-// dos mitades quedan en OrderItem.notes, que no se usa para otra cosa.
+// dos mitades quedan en OrderItem.notes.
 
 export const HALF_AND_HALF_NAME = "Mitad y mitad";
 export const HALF_AND_HALF_CATEGORY = "Pizzas";

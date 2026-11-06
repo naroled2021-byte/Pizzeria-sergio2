@@ -1,3 +1,5 @@
+import type { ChickenPromoChoice } from "@/lib/chicken-promo";
+
 export type SaleProduct = {
   id: string;
   name: string;
@@ -28,6 +30,8 @@ export type CartLine = {
   flavorIds: string[];
   flavorNames: string[];
   halfProductId?: string;
+  chickenPromo?: ChickenPromoChoice;
+  option?: string;
 };
 
 export type TodaySale = {

@@ -34,12 +34,13 @@ import { currency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { BUSINESS_LINKS } from "@/lib/business-links";
 import { SELF_SERVICE_DELIVERY_FEE } from "@/lib/constants";
+import { addChoiceLine } from "@/components/sales/product-choice-pickers";
+import { DRINKS_CATEGORY } from "@/lib/chicken-promo";
 import { groupFlavorNames } from "@/lib/flavor-quantities";
 import { HALF_AND_HALF_NAME } from "@/lib/half-and-half";
 import type { CartLine, SaleFlavor } from "@/components/sales/types";
 import type { ProductRow } from "@/components/products/types";
 
-const DRINKS_CATEGORY = "Bebidas";
 const MENU_CATEGORY_NAMES = ["Promociones", "Pizzas", "Empanadas", "Parrilla", DRINKS_CATEGORY];
 
 const ORDER_TYPE_OPTIONS = [
@@ -309,6 +310,11 @@ export function AutoservicioClient({
     toast.success(`${HALF_AND_HALF_NAME} agregada al pedido`);
   }
 
+  function handleAddChoiceLine(line: CartLine) {
+    setCart((prev) => addChoiceLine(prev, line));
+    toast.success(`${line.productName} agregado al pedido`);
+  }
+
   function updateQuantity(key: string, delta: number) {
     setCart((prev) =>
       prev
@@ -412,6 +418,8 @@ export function AutoservicioClient({
           quantity: l.quantity,
           flavorIds: l.flavorIds,
           halfProductId: l.halfProductId,
+          chickenPromo: l.chickenPromo,
+          option: l.option,
         })),
       });
 
@@ -531,9 +539,11 @@ export function AutoservicioClient({
         <MenuAccordion
           categories={menuCategories}
           flavors={flavors}
+          drinks={drinks}
           quantities={quantities}
           onAdd={handleAdd}
           onAddHalfAndHalf={handleAddHalfAndHalf}
+          onAddChoiceLine={handleAddChoiceLine}
         />
 
         <section ref={checkoutRef} id="tu-pedido" className="scroll-mt-4 rounded-3xl bg-card p-4 sm:p-5">

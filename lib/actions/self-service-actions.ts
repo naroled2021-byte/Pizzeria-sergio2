@@ -15,6 +15,7 @@ import { formatOrderNumber } from "@/lib/format";
 import { dozenUnits } from "@/lib/flavor-quantities";
 import { cashPaymentNote } from "@/lib/order-notes";
 import { HALF_AND_HALF_CATEGORY, halfAndHalfNote } from "@/lib/half-and-half";
+import { resolveItemChoices } from "@/lib/item-choices";
 import { dateKeyAR, startOfDayAR } from "@/lib/date-ar";
 
 type ActionResult<T = undefined> = { ok: true; data: T } | { ok: false; error: string };
@@ -117,18 +118,19 @@ export async function createSelfServiceOrder(
     }
   }
 
+  const choices = await resolveItemChoices(data.items, products);
+  if (!choices.ok) return choices;
+
   // Nunca se confía en el precio del cliente: la mitad y mitad se cobra al sabor más caro.
-  const lines = data.items.map((item) => {
+  const lines = data.items.map((item, i) => {
     const first = productMap.get(item.productId)!;
     const second = item.halfProductId ? productMap.get(item.halfProductId)! : null;
-    return {
-      ...item,
-      product: second && second.price > first.price ? second : first,
-      notes: second ? halfAndHalfNote(first.name, second.name) : null,
-    };
+    if (!second) return { ...item, product: first, ...choices.items[i] };
+    const product = second.price > first.price ? second : first;
+    return { ...item, product, unitPrice: product.price, notes: halfAndHalfNote(first.name, second.name) };
   });
 
-  const subtotal = lines.reduce((sum, line) => sum + line.product.price * line.quantity, 0);
+  const subtotal = lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0);
   const deliveryFee = data.type === "DELIVERY" ? SELF_SERVICE_DELIVERY_FEE : 0;
   const total = subtotal + deliveryFee;
 
@@ -220,11 +222,11 @@ export async function createSelfServiceOrder(
         total,
         notes,
         items: {
-          create: lines.map(({ product, quantity, notes, flavorIds }) => ({
+          create: lines.map(({ product, quantity, unitPrice, notes, flavorIds }) => ({
             productId: product.id,
             quantity,
-            unitPrice: product.price,
-            subtotal: product.price * quantity,
+            unitPrice,
+            subtotal: unitPrice * quantity,
             notes,
             format: product.allowsFlavors ? product.name : null,
             flavors: flavorIds.length ? { create: flavorIds.map((flavorId) => ({ flavorId })) } : undefined,

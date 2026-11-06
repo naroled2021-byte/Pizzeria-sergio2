@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/select";
 import { ProductPickerGrid } from "@/components/sales/product-picker-grid";
 import { FlavorPickerDialog } from "@/components/sales/flavor-picker-dialog";
+import { ProductChoiceDialog, hasProductChoices } from "@/components/sales/product-choice-dialog";
+import { addChoiceLine } from "@/components/sales/product-choice-pickers";
 import { TodaySalesList } from "@/components/sales/today-sales-list";
 import { createSale } from "@/lib/actions/sale-actions";
 import { createCustomer } from "@/lib/actions/customer-actions";
@@ -49,6 +51,7 @@ export function SalesClient({
   const router = useRouter();
   const [cart, setCart] = useState<CartLine[]>([]);
   const [pendingFlavorProduct, setPendingFlavorProduct] = useState<SaleProduct | null>(null);
+  const [choiceProduct, setChoiceProduct] = useState<SaleProduct | null>(null);
   const [orderType, setOrderType] = useState<string>("DINE_IN");
   const [customerName, setCustomerName] = useState("");
   const [deliveryAddress, setDeliveryAddress] = useState("");
@@ -72,6 +75,10 @@ export function SalesClient({
   const total = Math.max(subtotal - discountValue, 0) + deliveryFee;
 
   function handlePickProduct(product: SaleProduct) {
+    if (hasProductChoices(product)) {
+      setChoiceProduct(product);
+      return;
+    }
     if (product.allowsFlavors) {
       setPendingFlavorProduct(product);
       return;
@@ -170,7 +177,13 @@ export function SalesClient({
         deliveryAddress,
         paymentMethod,
         discount: discountValue as never,
-        items: cart.map((l) => ({ productId: l.productId, quantity: l.quantity, flavorIds: l.flavorIds })),
+        items: cart.map((l) => ({
+          productId: l.productId,
+          quantity: l.quantity,
+          flavorIds: l.flavorIds,
+          chickenPromo: l.chickenPromo,
+          option: l.option,
+        })),
       });
 
       if (!res.ok) {
@@ -389,6 +402,15 @@ export function SalesClient({
         flavors={flavors}
         onCancel={() => setPendingFlavorProduct(null)}
         onConfirm={handleConfirmFlavors}
+      />
+      <ProductChoiceDialog
+        product={choiceProduct}
+        products={products}
+        onCancel={() => setChoiceProduct(null)}
+        onAdd={(line) => {
+          setCart((prev) => addChoiceLine(prev, line));
+          setChoiceProduct(null);
+        }}
       />
     </div>
 

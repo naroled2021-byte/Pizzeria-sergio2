@@ -6,6 +6,8 @@ import { ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
 import { TileGrid } from "@/components/mostrador/tile-grid";
 import { CartSheet } from "@/components/mostrador/cart-sheet";
+import { ProductChoiceDialog, hasProductChoices } from "@/components/sales/product-choice-dialog";
+import { addChoiceLine } from "@/components/sales/product-choice-pickers";
 import { createSale } from "@/lib/actions/sale-actions";
 import { currency } from "@/lib/format";
 import { ORDER_TYPE } from "@/lib/constants";
@@ -21,6 +23,7 @@ export function ArticulosClient({
   const router = useRouter();
   const [cart, setCart] = useState<CartLine[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [choiceProduct, setChoiceProduct] = useState<SaleProduct | null>(null);
   const [customerName, setCustomerName] = useState("");
   const [paymentMethod, setPaymentMethod] = useState(paymentMethods[0]?.key ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +33,10 @@ export function ArticulosClient({
   const total = useMemo(() => cart.reduce((sum, l) => sum + l.unitPrice * l.quantity, 0), [cart]);
 
   function handlePickProduct(product: SaleProduct) {
+    if (hasProductChoices(product)) {
+      setChoiceProduct(product);
+      return;
+    }
     setCart((prev) => {
       const existing = prev.find((l) => l.productId === product.id && l.flavorIds.length === 0);
       if (existing) {
@@ -81,7 +88,13 @@ export function ArticulosClient({
         deliveryAddress: "",
         paymentMethod,
         discount: 0 as never,
-        items: cart.map((l) => ({ productId: l.productId, quantity: l.quantity, flavorIds: l.flavorIds })),
+        items: cart.map((l) => ({
+          productId: l.productId,
+          quantity: l.quantity,
+          flavorIds: l.flavorIds,
+          chickenPromo: l.chickenPromo,
+          option: l.option,
+        })),
       });
 
       if (!res.ok) {
@@ -99,6 +112,17 @@ export function ArticulosClient({
   return (
     <div className="flex flex-col gap-4 pb-4">
       <TileGrid products={products} onPick={handlePickProduct} />
+
+      <ProductChoiceDialog
+        product={choiceProduct}
+        products={products}
+        onCancel={() => setChoiceProduct(null)}
+        onAdd={(line) => {
+          setCart((prev) => addChoiceLine(prev, line));
+          setChoiceProduct(null);
+          toast.success(`${line.productName} agregado`);
+        }}
+      />
 
       <CartSheet
         open={cartOpen}

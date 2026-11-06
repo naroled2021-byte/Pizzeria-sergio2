@@ -1,9 +1,33 @@
 import { z } from "zod";
+import {
+  CHICKEN_SAUCES,
+  CHICKEN_SIDES,
+  FRIES,
+  FRIES_SEASONINGS,
+  INCLUDED_DRINKS,
+  SALAD,
+  SALAD_INGREDIENTS,
+} from "@/lib/chicken-promo";
+
+const chickenPromoSchema = z
+  .object({
+    sauce: z.enum(CHICKEN_SAUCES),
+    side: z.enum(CHICKEN_SIDES),
+    seasoning: z.enum(FRIES_SEASONINGS).optional(),
+    salad: z.array(z.enum(SALAD_INGREDIENTS)),
+    drink: z.enum(INCLUDED_DRINKS).optional(),
+    otherDrinkId: z.string().min(1).optional(),
+  })
+  .refine((data) => data.side !== FRIES || !!data.seasoning, { message: "Elegí el condimento de las papas" })
+  .refine((data) => data.side !== SALAD || data.salad.length > 0, { message: "Elegí qué lleva la ensalada" })
+  .refine((data) => !!data.drink !== !!data.otherDrinkId, { message: "Elegí una bebida" });
 
 export const saleItemSchema = z.object({
   productId: z.string().min(1),
   quantity: z.coerce.number().int().min(1),
   flavorIds: z.array(z.string()).default([]),
+  chickenPromo: chickenPromoSchema.optional(),
+  option: z.string().max(60).optional(),
 });
 
 export const saleSchema = z
