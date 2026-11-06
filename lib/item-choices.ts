@@ -7,7 +7,7 @@ import {
   otherDrinkExtra,
   type ChickenPromoChoice,
 } from "@/lib/chicken-promo";
-import { PRODUCT_OPTIONS, productOptionNote } from "@/lib/product-options";
+import { PRODUCT_OPTIONS, isValidChoice, productOptionNote } from "@/lib/product-options";
 
 type ItemWithChoices = { productId: string; chickenPromo?: ChickenPromoChoice; option?: string };
 type ProductForChoices = { id: string; name: string; price: number };
@@ -50,7 +50,7 @@ export async function resolveItemChoices(
         notes: chickenPromoNote(choice, otherDrink?.name),
       });
     } else if (options) {
-      if (!item.option || !options.choices.includes(item.option)) return invalid;
+      if (!item.option || !isValidChoice(options, item.option)) return invalid;
       resolved.push({ unitPrice: product.price, notes: productOptionNote(options, item.option) });
     } else {
       resolved.push({ unitPrice: product.price, notes: null });

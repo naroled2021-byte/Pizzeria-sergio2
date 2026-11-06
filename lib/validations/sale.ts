@@ -11,7 +11,7 @@ import {
 
 const chickenPromoSchema = z
   .object({
-    sauce: z.enum(CHICKEN_SAUCES),
+    sauces: z.array(z.enum(CHICKEN_SAUCES)).min(1, "Elegí una salsa"),
     side: z.enum(CHICKEN_SIDES),
     seasoning: z.enum(FRIES_SEASONINGS).optional(),
     salad: z.array(z.enum(SALAD_INGREDIENTS)),

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { currency } from "@/lib/format";
 import {
+  ALL_SAUCES,
   BASE_DRINK_NAME,
   CHICKEN_SAUCES,
   CHICKEN_SIDES,
@@ -18,7 +19,7 @@ import {
   otherDrinkExtra,
   type ChickenPromoChoice,
 } from "@/lib/chicken-promo";
-import { productOptionNote, type ProductOptions } from "@/lib/product-options";
+import { joinChoices, productOptionNote, type ProductOptions } from "@/lib/product-options";
 import type { CartLine } from "@/components/sales/types";
 
 // Las usan la carta de Autoservicio y el diálogo de Mostrador y Ventas.
@@ -67,7 +68,7 @@ export function ChickenPromoPicker({
   drinks: ChoiceProduct[];
   onAdd: (line: CartLine) => void;
 }) {
-  const [sauce, setSauce] = useState<ChickenPromoChoice["sauce"] | null>(null);
+  const [sauces, setSauces] = useState<ChickenPromoChoice["sauces"]>([]);
   const [side, setSide] = useState<ChickenPromoChoice["side"] | null>(null);
   const [seasoning, setSeasoning] = useState<ChickenPromoChoice["seasoning"]>();
   const [salad, setSalad] = useState<ChickenPromoChoice["salad"]>([]);
@@ -78,16 +79,25 @@ export function ChickenPromoPicker({
   const baseDrink = drinks.find((d) => d.name === BASE_DRINK_NAME);
   const unitPrice = product.price + (otherDrink && baseDrink ? otherDrinkExtra(otherDrink.price, baseDrink.price) : 0);
   const sideReady = side === FRIES ? !!seasoning : side === SALAD && salad.length > 0;
-  const canConfirm = !!sauce && sideReady && (!!drink || !!otherDrink);
+  const canConfirm = sauces.length > 0 && sideReady && (!!drink || !!otherDrink);
+
+  // "Con todo" ya incluye las demás, así que no se combina con ellas.
+  function toggleSauce(sauce: ChickenPromoChoice["sauces"][number]) {
+    setSauces((prev) => {
+      if (prev.includes(sauce)) return prev.filter((s) => s !== sauce);
+      if (sauce === ALL_SAUCES) return [sauce];
+      return CHICKEN_SAUCES.filter((s) => s !== ALL_SAUCES && (s === sauce || prev.includes(s)));
+    });
+  }
 
   function toggleIngredient(ingredient: ChickenPromoChoice["salad"][number]) {
     setSalad((prev) => (prev.includes(ingredient) ? prev.filter((i) => i !== ingredient) : [...prev, ingredient]));
   }
 
   function confirm() {
-    if (!sauce || !side) return;
+    if (!side) return;
     const choice: ChickenPromoChoice = {
-      sauce,
+      sauces,
       side,
       seasoning: side === FRIES ? seasoning : undefined,
       salad: side === SALAD ? salad : [],
@@ -108,9 +118,9 @@ export function ChickenPromoPicker({
 
   return (
     <div className="flex flex-col gap-3">
-      <ChipGroup title="¿Con qué salsa?">
+      <ChipGroup title="¿Con qué salsa? Podés elegir más de una.">
         {CHICKEN_SAUCES.map((option) => (
-          <Chip key={option} selected={sauce === option} onClick={() => setSauce(option)}>
+          <Chip key={option} selected={sauces.includes(option)} onClick={() => toggleSauce(option)}>
             {option}
           </Chip>
         ))}
@@ -202,10 +212,17 @@ export function ProductOptionPicker({
   options: ProductOptions;
   onAdd: (line: CartLine) => void;
 }) {
-  const [choice, setChoice] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
+
+  function toggle(option: string) {
+    setSelected((prev) => {
+      if (!options.multiple) return [option];
+      return prev.includes(option) ? prev.filter((o) => o !== option) : [...prev, option];
+    });
+  }
 
   function confirm() {
-    if (!choice) return;
+    const choice = joinChoices(options, selected);
     onAdd({
       key: crypto.randomUUID(),
       productId: product.id,
@@ -222,12 +239,12 @@ export function ProductOptionPicker({
     <div className="flex flex-col gap-3">
       <ChipGroup title={options.question}>
         {options.choices.map((option) => (
-          <Chip key={option} selected={choice === option} onClick={() => setChoice(option)}>
+          <Chip key={option} selected={selected.includes(option)} onClick={() => toggle(option)}>
             {option}
           </Chip>
         ))}
       </ChipGroup>
-      <Button className="w-full" disabled={!choice} onClick={confirm}>
+      <Button className="w-full" disabled={selected.length === 0} onClick={confirm}>
         Agregar al pedido · {currency.format(product.price)}
       </Button>
     </div>

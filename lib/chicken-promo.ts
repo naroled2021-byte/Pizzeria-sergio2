@@ -4,7 +4,8 @@
 export const CHICKEN_PROMO_NAME = "Promo pollo";
 export const DRINKS_CATEGORY = "Bebidas";
 
-export const CHICKEN_SAUCES = ["Chimichurri", "Criolla", "Limón", "Con todo"] as const;
+export const ALL_SAUCES = "Con todo";
+export const CHICKEN_SAUCES = ["Chimichurri", "Criolla", "Limón", ALL_SAUCES] as const;
 export const FRIES = "Papas fritas";
 export const SALAD = "Ensalada";
 export const CHICKEN_SIDES = [FRIES, SALAD] as const;
@@ -15,7 +16,7 @@ export const INCLUDED_DRINKS = ["Manaos común", "Manaos cero", "Crush naranja",
 export const BASE_DRINK_NAME = "Manaos";
 
 export type ChickenPromoChoice = {
-  sauce: (typeof CHICKEN_SAUCES)[number];
+  sauces: (typeof CHICKEN_SAUCES)[number][];
   side: (typeof CHICKEN_SIDES)[number];
   seasoning?: (typeof FRIES_SEASONINGS)[number];
   salad: (typeof SALAD_INGREDIENTS)[number][];
@@ -33,7 +34,7 @@ export function otherDrinkExtra(drinkPrice: number, baseDrinkPrice: number): num
 
 export function chickenPromoDetail(choice: ChickenPromoChoice, otherDrinkName?: string): string[] {
   return [
-    `Salsa: ${choice.sauce}`,
+    `Salsa: ${choice.sauces.join(", ")}`,
     choice.side === SALAD ? `${SALAD}: ${choice.salad.join(", ")}` : `${FRIES}: ${choice.seasoning}`,
     `Bebida: ${otherDrinkName ?? choice.drink}`,
   ];
