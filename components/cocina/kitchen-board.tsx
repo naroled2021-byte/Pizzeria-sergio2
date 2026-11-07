@@ -159,10 +159,34 @@ export function KitchenBoard({ orders }: { orders: KitchenOrder[] }) {
           <p className="text-sm">Los pedidos nuevos de Autoservicio, Mostrador y Ventas aparecen acá.</p>
         </div>
       ) : (
-        <main className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:p-6 xl:grid-cols-3 2xl:grid-cols-4">
-          {orders.map((order) => (
-            <KitchenTicket key={order.id} order={order} now={now} />
-          ))}
+        <main className="grid flex-1 grid-cols-1 divide-y divide-white/15 lg:grid-cols-2 lg:divide-x lg:divide-y-0">
+          {[ORDER_CHANNEL.COUNTER, ORDER_CHANNEL.SELF_SERVICE].map((channel) => {
+            const channelOrders = orders.filter((o) => o.channel === channel);
+            return (
+              <section key={channel} className="flex min-w-0 flex-col gap-4 p-4 sm:p-6">
+                <h2
+                  className={cn(
+                    "flex items-center gap-2 text-lg font-bold",
+                    channel === ORDER_CHANNEL.SELF_SERVICE ? "text-orange-300" : "text-blue-300"
+                  )}
+                >
+                  {ORDER_CHANNEL_LABEL[channel]}
+                  <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-sm font-semibold tabular-nums">
+                    {channelOrders.length}
+                  </span>
+                </h2>
+                {channelOrders.length === 0 ? (
+                  <p className="py-10 text-center text-sm text-muted-foreground">Sin pedidos</p>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
+                    {channelOrders.map((order) => (
+                      <KitchenTicket key={order.id} order={order} now={now} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            );
+          })}
         </main>
       )}
     </div>
