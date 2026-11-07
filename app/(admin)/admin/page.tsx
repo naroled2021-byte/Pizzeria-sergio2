@@ -18,7 +18,7 @@ import { PaymentMethodsChart } from "@/components/dashboard/payment-methods-char
 import { PeakHoursChart } from "@/components/dashboard/peak-hours-chart";
 import { OrderStatusCards } from "@/components/dashboard/order-status-cards";
 import { QuickActions } from "@/components/dashboard/quick-actions";
-import { formatCompactCurrency } from "@/lib/format";
+import { currency } from "@/lib/format";
 import { requirePermission } from "@/lib/auth-helpers";
 
 export default async function DashboardPage() {
@@ -32,10 +32,10 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-        <KpiCard label="Ventas de hoy" value={formatCompactCurrency(data.salesToday)} icon={DollarSign} />
-        <KpiCard label="Ventas del mes" value={formatCompactCurrency(data.salesMonth)} icon={CalendarRange} />
+        <KpiCard label="Ventas de hoy" value={currency.format(data.salesToday)} icon={DollarSign} />
+        <KpiCard label="Ventas del mes" value={currency.format(data.salesMonth)} icon={CalendarRange} />
         <KpiCard label="Pedidos de hoy" value={String(data.ordersTodayCount)} icon={ClipboardList} />
-        <KpiCard label="Ticket promedio" value={formatCompactCurrency(data.avgTicket)} icon={Receipt} />
+        <KpiCard label="Ticket promedio" value={currency.format(data.avgTicket)} icon={Receipt} />
         <KpiCard
           label="Stock crítico"
           value={String(data.criticalStock.length)}
@@ -51,11 +51,11 @@ export default async function DashboardPage() {
         />
         <KpiCard
           label="Caja actual"
-          value={data.cashRegisterOpen ? formatCompactCurrency(data.cashCurrent) : "Cerrada"}
+          value={data.cashRegisterOpen ? currency.format(data.cashCurrent) : "Cerrada"}
           icon={Wallet}
           tone={data.cashRegisterOpen ? "default" : "warning"}
         />
-        <KpiCard label="Ganancia estimada" value={formatCompactCurrency(data.gananciaEstimada)} icon={TrendingUp} />
+        <KpiCard label="Ganancia estimada" value={currency.format(data.gananciaEstimada)} icon={TrendingUp} />
         <KpiCard label="Clientes nuevos (mes)" value={String(data.customersThisMonth)} icon={UserPlus} />
       </div>
 

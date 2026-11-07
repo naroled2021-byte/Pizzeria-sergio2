@@ -1,6 +1,6 @@
 import { TrendingDown, TrendingUp, Landmark, DoorOpen } from "lucide-react";
 import { KpiCard } from "@/components/dashboard/kpi-card";
-import { currency, formatCompactCurrency } from "@/lib/format";
+import { currency } from "@/lib/format";
 import { computeExpectedByMethod, HIDDEN_AMOUNT, sumAmounts, summarizeMovements } from "@/lib/cash-utils";
 import { CASH_MOVEMENT_TYPE, PAYMENT_METHOD } from "@/lib/constants";
 import type { OpenRegister, CashPaymentMethod } from "@/components/cash/types";
@@ -17,7 +17,6 @@ export function CashSummaryCards({
   hideAmounts: boolean;
 }) {
   const full = (amount: number) => (hideAmounts ? HIDDEN_AMOUNT : currency.format(amount));
-  const compact = (amount: number) => (hideAmounts ? HIDDEN_AMOUNT : formatCompactCurrency(amount));
   const totals = summarizeMovements(register.movements);
   const expectedByMethod = computeExpectedByMethod(register.openingAmounts, register.movements);
   const expectedTotal = sumAmounts(expectedByMethod);
@@ -43,9 +42,9 @@ export function CashSummaryCards({
         </div>
       )}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <KpiCard label="Total inicial" value={compact(sumAmounts(register.openingAmounts))} icon={Landmark} />
-        <KpiCard label="Ingresos" value={compact(totals.income)} icon={TrendingUp} />
-        <KpiCard label="Egresos" value={compact(totals.expense)} icon={TrendingDown} />
+        <KpiCard label="Total inicial" value={full(sumAmounts(register.openingAmounts))} icon={Landmark} />
+        <KpiCard label="Ingresos" value={full(totals.income)} icon={TrendingUp} />
+        <KpiCard label="Egresos" value={full(totals.expense)} icon={TrendingDown} />
         <KpiCard label="Aperturas manuales" value={String(manualOpens)} icon={DoorOpen} />
       </div>
 
