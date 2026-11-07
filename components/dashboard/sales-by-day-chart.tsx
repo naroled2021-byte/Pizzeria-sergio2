@@ -1,7 +1,7 @@
 "use client";
 
 import { useTheme } from "next-themes";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { singleSeriesColor, chartChrome } from "@/lib/chart-colors";
 import { useMounted } from "@/lib/use-mounted";
 
@@ -16,13 +16,7 @@ export function SalesByDayChart({ data }: { data: { label: string; total: number
 
   return (
     <ResponsiveContainer width="100%" height={240}>
-      <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-        <defs>
-          <linearGradient id="salesFill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor={color} stopOpacity={0.28} />
-            <stop offset="100%" stopColor={color} stopOpacity={0.02} />
-          </linearGradient>
-        </defs>
+      <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <CartesianGrid vertical={false} stroke={chrome.grid} strokeDasharray="0" />
         <XAxis
           dataKey="label"
@@ -34,10 +28,11 @@ export function SalesByDayChart({ data }: { data: { label: string; total: number
           tickLine={false}
           axisLine={false}
           tick={{ fill: chrome.axis, fontSize: 12 }}
-          tickFormatter={(v) => (v >= 1000 ? `${Math.round(v / 1000)}K` : v)}
-          width={40}
+          tickFormatter={(v) => currency.format(v)}
+          width={84}
         />
         <Tooltip
+          cursor={{ fill: "color-mix(in oklch, var(--foreground) 6%, transparent)" }}
           formatter={(value) => currency.format(Number(value))}
           contentStyle={{
             background: chrome.surface,
@@ -46,16 +41,8 @@ export function SalesByDayChart({ data }: { data: { label: string; total: number
             fontSize: 12,
           }}
         />
-        <Area
-          type="monotone"
-          dataKey="total"
-          stroke={color}
-          strokeWidth={2}
-          fill="url(#salesFill)"
-          dot={{ r: 4, fill: color, stroke: chrome.surface, strokeWidth: 2 }}
-          activeDot={{ r: 5, fill: color, stroke: chrome.surface, strokeWidth: 2 }}
-        />
-      </AreaChart>
+        <Bar dataKey="total" name="Ventas" fill={color} radius={[4, 4, 0, 0]} maxBarSize={40} />
+      </BarChart>
     </ResponsiveContainer>
   );
 }

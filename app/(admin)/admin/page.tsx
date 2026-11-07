@@ -65,7 +65,11 @@ export default async function DashboardPage() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <ChartCard title="Ventas por día" description="Últimos 7 días" className="lg:col-span-2">
+        <ChartCard
+          title="Ventas por día"
+          description={`Últimos 7 días · ${currency.format(data.salesByDay.reduce((sum, d) => sum + d.total, 0))} en total`}
+          className="lg:col-span-2"
+        >
           <SalesByDayChart data={data.salesByDay} />
         </ChartCard>
         <ChartCard title="Métodos de pago" description="Últimos 7 días">

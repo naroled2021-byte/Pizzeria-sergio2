@@ -94,7 +94,7 @@ export async function getDashboardData() {
   }
   const salesByDay = Array.from(salesByDayMap.entries()).map(([date, total]) => ({
     date,
-    label: new Date(date + "T12:00:00").toLocaleDateString("es-AR", { weekday: "short" }),
+    label: `${new Date(date + "T12:00:00").toLocaleDateString("es-AR", { weekday: "short" })} ${Number(date.slice(8))}`,
     total,
   }));
 
