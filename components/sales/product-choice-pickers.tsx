@@ -70,7 +70,7 @@ export function ChickenPromoPicker({
   onAdd: (line: CartLine) => void;
 }) {
   const [sauces, setSauces] = useState<ChickenPromoChoice["sauces"]>([]);
-  const [side, setSide] = useState<ChickenPromoChoice["side"] | null>(null);
+  const [side, setSide] = useState<ChickenPromoChoice["side"]>();
   const [seasoning, setSeasoning] = useState<ChickenPromoChoice["seasoning"]>();
   const [salad, setSalad] = useState<ChickenPromoChoice["salad"]>([]);
   const [drink, setDrink] = useState<ChickenPromoChoice["drink"]>();
@@ -79,8 +79,6 @@ export function ChickenPromoPicker({
 
   const baseDrink = drinks.find((d) => d.name === BASE_DRINK_NAME);
   const unitPrice = product.price + (otherDrink && baseDrink ? otherDrinkExtra(otherDrink.price, baseDrink.price) : 0);
-  const sideReady = side === FRIES ? !!seasoning : side === SALAD && salad.length > 0;
-  const canConfirm = sauces.length > 0 && sideReady && (!!drink || !!otherDrink);
 
   // "Con todo" ya incluye las demás, así que no se combina con ellas.
   function toggleSauce(sauce: ChickenPromoChoice["sauces"][number]) {
@@ -96,7 +94,6 @@ export function ChickenPromoPicker({
   }
 
   function confirm() {
-    if (!side) return;
     const choice: ChickenPromoChoice = {
       sauces,
       side,
@@ -119,6 +116,7 @@ export function ChickenPromoPicker({
 
   return (
     <div className="flex flex-col gap-3">
+      <p className="text-xs text-muted-foreground">Podés dejar opciones sin marcar.</p>
       <ChipGroup title="¿Con qué salsa? Podés elegir más de una.">
         {CHICKEN_SAUCES.map((option) => (
           <Chip key={option} selected={sauces.includes(option)} onClick={() => toggleSauce(option)}>
@@ -129,7 +127,7 @@ export function ChickenPromoPicker({
 
       <ChipGroup title="¿Con qué lo acompañás?">
         {CHICKEN_SIDES.map((option) => (
-          <Chip key={option} selected={side === option} onClick={() => setSide(option)}>
+          <Chip key={option} selected={side === option} onClick={() => setSide(side === option ? undefined : option)}>
             {option}
           </Chip>
         ))}
@@ -138,7 +136,7 @@ export function ChickenPromoPicker({
       {side === FRIES && (
         <ChipGroup title="¿Con qué condimento?">
           {FRIES_SEASONINGS.map((option) => (
-            <Chip key={option} selected={seasoning === option} onClick={() => setSeasoning(option)}>
+            <Chip key={option} selected={seasoning === option} onClick={() => setSeasoning(seasoning === option ? undefined : option)}>
               {option}
             </Chip>
           ))}
@@ -161,7 +159,7 @@ export function ChickenPromoPicker({
             key={option}
             selected={drink === option}
             onClick={() => {
-              setDrink(option);
+              setDrink(drink === option ? undefined : option);
               setOtherDrink(null);
             }}
           >
@@ -186,7 +184,7 @@ export function ChickenPromoPicker({
                   key={option.id}
                   selected={otherDrink?.id === option.id}
                   onClick={() => {
-                    setOtherDrink(option);
+                    setOtherDrink(otherDrink?.id === option.id ? null : option);
                     setDrink(undefined);
                   }}
                 >
@@ -197,7 +195,7 @@ export function ChickenPromoPicker({
         </ChipGroup>
       )}
 
-      <Button className="w-full" disabled={!canConfirm} onClick={confirm}>
+      <Button className="w-full" onClick={confirm}>
         Agregar al pedido · {currency.format(unitPrice)}
       </Button>
     </div>

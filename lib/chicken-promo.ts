@@ -1,5 +1,5 @@
-// Promo pollo: el cliente elige salsa, acompañamiento y bebida. Lo elegido queda en
-// OrderItem.notes para que salga en la comanda y en cocina.
+// Promo pollo: el cliente puede elegir salsa, acompañamiento y bebida. Lo elegido queda en
+// OrderItem.notes para que salga en la comanda y en cocina, junto con lo que no eligió.
 
 export const CHICKEN_PROMO_NAME = "Promo pollo";
 export const DRINKS_CATEGORY = "Bebidas";
@@ -17,7 +17,7 @@ export const BASE_DRINK_NAME = "Manaos";
 
 export type ChickenPromoChoice = {
   sauces: (typeof CHICKEN_SAUCES)[number][];
-  side: (typeof CHICKEN_SIDES)[number];
+  side?: (typeof CHICKEN_SIDES)[number];
   seasoning?: (typeof FRIES_SEASONINGS)[number];
   salad: (typeof SALAD_INGREDIENTS)[number][];
   /** Una de las incluidas, o si no el producto de la otra bebida que eligió. */
@@ -26,17 +26,24 @@ export type ChickenPromoChoice = {
 };
 
 const NOTE_SEPARATOR = " | ";
+const NOT_CHOSEN = "sin elegir";
 
 /** Una bebida más barata que la incluida no descuenta nada de la promo. */
 export function otherDrinkExtra(drinkPrice: number, baseDrinkPrice: number): number {
   return Math.max(drinkPrice - baseDrinkPrice, 0);
 }
 
+function sideDetail(choice: ChickenPromoChoice): string {
+  if (choice.side === SALAD) return `${SALAD}: ${choice.salad.join(", ") || NOT_CHOSEN}`;
+  if (choice.side === FRIES) return `${FRIES}: ${choice.seasoning ?? NOT_CHOSEN}`;
+  return `Acompañamiento: ${NOT_CHOSEN}`;
+}
+
 export function chickenPromoDetail(choice: ChickenPromoChoice, otherDrinkName?: string): string[] {
   return [
-    `Salsa: ${choice.sauces.join(", ")}`,
-    choice.side === SALAD ? `${SALAD}: ${choice.salad.join(", ")}` : `${FRIES}: ${choice.seasoning}`,
-    `Bebida: ${otherDrinkName ?? choice.drink}`,
+    `Salsa: ${choice.sauces.join(", ") || NOT_CHOSEN}`,
+    sideDetail(choice),
+    `Bebida: ${otherDrinkName ?? choice.drink ?? NOT_CHOSEN}`,
   ];
 }
 
