@@ -2,7 +2,7 @@
 
 import { Loader2, Minus, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { CashInput } from "@/components/autoservicio/cash-input";
 import { Label } from "@/components/ui/label";
 import { currency } from "@/lib/format";
 import type { ProductRow } from "@/components/products/types";
@@ -109,14 +109,7 @@ export function DrinksOffer({
         {needsCash && (
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="drinks-offer-cash">El total subió. ¿Con cuánto pagás?</Label>
-            <Input
-              id="drinks-offer-cash"
-              type="number"
-              min="0"
-              inputMode="numeric"
-              value={cashTendered}
-              onChange={(e) => setCashTendered(e.target.value)}
-            />
+            <CashInput id="drinks-offer-cash" value={cashTendered} onValueChange={setCashTendered} />
           </div>
         )}
 

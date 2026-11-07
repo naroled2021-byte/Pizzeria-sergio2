@@ -23,6 +23,7 @@ import {
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CashInput } from "@/components/autoservicio/cash-input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { DrinksOffer } from "@/components/autoservicio/drinks-offer";
@@ -703,15 +704,12 @@ export function AutoservicioClient({
 
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="cashTendered">¿Con cuánto pagás?</Label>
-                  <Input
+                  <CashInput
                     id="cashTendered"
-                    type="number"
-                    inputMode="numeric"
-                    min={0}
                     required
                     value={cashTendered}
-                    onChange={(e) => setCashTendered(e.target.value)}
-                    placeholder="Ej: 20000"
+                    onValueChange={setCashTendered}
+                    placeholder="Ej: 20.000"
                   />
                 </div>
               </>
