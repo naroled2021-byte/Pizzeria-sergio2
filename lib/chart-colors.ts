@@ -10,6 +10,6 @@ export const categoricalPalette = {
 };
 
 export const chartChrome = {
-  light: { grid: "#e1e0d9", axis: "#898781", surface: "#fffaf3" },
+  light: { grid: "#e3e5f0", axis: "#898781", surface: "#ffffff" },
   dark: { grid: "#2c2c2a", axis: "#b8aca2", surface: "#2a2420" },
 };

@@ -24,13 +24,13 @@ export function AppSidebar({ permissions }: { permissions: string[] }) {
     <Sidebar collapsible="icon">
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-1.5">
-          <div className="size-9 shrink-0 overflow-hidden rounded-2xl">
+          <div className="size-9 shrink-0 overflow-hidden rounded-2xl bg-white">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/logo2.png" alt="Pizzería Sergio" className="size-full object-contain" />
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
             <span className="font-semibold text-sm">Pizzería Sergio</span>
-            <span className="text-xs text-muted-foreground">Panel de gestión</span>
+            <span className="text-xs text-sidebar-foreground/70">Panel de gestión</span>
           </div>
         </div>
       </SidebarHeader>
@@ -67,6 +67,7 @@ export function AppSidebar({ permissions }: { permissions: string[] }) {
                         render={<Link href={item.href} />}
                         isActive={isActive}
                         tooltip={item.label}
+                        className="data-active:bg-sidebar-primary data-active:text-sidebar-primary-foreground data-active:hover:bg-sidebar-primary data-active:hover:text-sidebar-primary-foreground"
                       >
                         {content}
                       </SidebarMenuButton>

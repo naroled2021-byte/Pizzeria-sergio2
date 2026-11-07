@@ -28,9 +28,9 @@ export function KpiCard({
         <div
           className={cn(
             "flex size-10 shrink-0 items-center justify-center rounded-2xl",
-            tone === "critical" && "bg-destructive/15 text-destructive",
-            tone === "warning" && "bg-[color-mix(in_oklch,var(--chart-5)_25%,transparent)] text-[#a06a1f] dark:text-[#e0a85f]",
-            tone === "default" && "bg-primary/12 text-primary"
+            tone === "critical" && "bg-destructive text-white",
+            tone === "warning" && "bg-[#f59e0b] text-white",
+            tone === "default" && "bg-primary text-white"
           )}
         >
           <Icon className="size-5" strokeWidth={1.75} />
