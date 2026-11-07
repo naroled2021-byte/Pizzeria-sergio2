@@ -27,7 +27,7 @@ export const saleItemSchema = z.object({
   quantity: z.coerce.number().int().min(1),
   flavorIds: z.array(z.string()).default([]),
   chickenPromo: chickenPromoSchema.optional(),
-  option: z.string().max(60).optional(),
+  option: z.string().max(120).optional(),
 });
 
 export const saleSchema = z

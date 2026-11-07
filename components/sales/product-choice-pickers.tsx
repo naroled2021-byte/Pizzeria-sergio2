@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "lucide-react";
+import { Check, Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { currency } from "@/lib/format";
@@ -19,7 +19,8 @@ import {
   otherDrinkExtra,
   type ChickenPromoChoice,
 } from "@/lib/chicken-promo";
-import { joinChoices, productOptionNote, type ProductOptions } from "@/lib/product-options";
+import { FlavorCounter, type FlavorCounts } from "@/components/sales/flavor-counter";
+import { joinChoices, joinUnits, productOptionNote, type ProductOptions } from "@/lib/product-options";
 import type { CartLine } from "@/components/sales/types";
 
 // Las usan la carta de Autoservicio y el diálogo de Mostrador y Ventas.
@@ -30,7 +31,7 @@ type ChoiceProduct = { id: string; name: string; price: number };
 export function addChoiceLine(cart: CartLine[], line: CartLine): CartLine[] {
   const existing = line.option && cart.find((l) => l.productId === line.productId && l.option === line.option);
   return existing
-    ? cart.map((l) => (l.key === existing.key ? { ...l, quantity: l.quantity + 1 } : l))
+    ? cart.map((l) => (l.key === existing.key ? { ...l, quantity: l.quantity + line.quantity } : l))
     : [...cart, line];
 }
 
@@ -203,16 +204,57 @@ export function ChickenPromoPicker({
   );
 }
 
-export function ProductOptionPicker({
-  product,
-  options,
-  onAdd,
-}: {
+type OptionPickerProps = {
   product: ChoiceProduct;
   options: ProductOptions;
   onAdd: (line: CartLine) => void;
-}) {
+};
+
+export function ProductOptionPicker(props: OptionPickerProps) {
+  return props.options.units ? <UnitsPicker {...props} units={props.options.units} /> : <ChoicePicker {...props} />;
+}
+
+/** Productos con precio por un total fijo de unidades: se reparten entre las opciones. */
+function UnitsPicker({ product, options, units, onAdd }: OptionPickerProps & { units: number }) {
+  const [counts, setCounts] = useState<FlavorCounts>({});
+  const total = Object.values(counts).reduce((sum, count) => sum + count, 0);
+
+  function confirm() {
+    const choice = joinUnits(options, counts);
+    onAdd({
+      key: crypto.randomUUID(),
+      productId: product.id,
+      productName: product.name,
+      unitPrice: product.price,
+      quantity: 1,
+      flavorIds: [],
+      flavorNames: [productOptionNote(options, choice)],
+      option: choice,
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-xs text-muted-foreground">
+        {options.question} ({total}/{units}).
+      </p>
+      <FlavorCounter
+        flavors={options.choices.map((c) => ({ id: c, name: c }))}
+        counts={counts}
+        onChange={setCounts}
+        limit={units}
+        maxDistinct={options.choices.length}
+      />
+      <Button className="w-full" disabled={total !== units} onClick={confirm}>
+        Agregar al pedido · {currency.format(product.price)}
+      </Button>
+    </div>
+  );
+}
+
+function ChoicePicker({ product, options, onAdd }: OptionPickerProps) {
   const [selected, setSelected] = useState<string[]>([]);
+  const [quantity, setQuantity] = useState(1);
 
   function toggle(option: string) {
     setSelected((prev) => {
@@ -228,7 +270,7 @@ export function ProductOptionPicker({
       productId: product.id,
       productName: product.name,
       unitPrice: product.price,
-      quantity: 1,
+      quantity,
       flavorIds: [],
       flavorNames: [productOptionNote(options, choice)],
       option: choice,
@@ -244,8 +286,29 @@ export function ProductOptionPicker({
           </Chip>
         ))}
       </ChipGroup>
+      <div className="flex items-center gap-2">
+        <span className="min-w-0 flex-1 text-xs text-muted-foreground">¿Cuántos?</span>
+        <button
+          type="button"
+          disabled={quantity === 1}
+          onClick={() => setQuantity((q) => q - 1)}
+          aria-label="Quitar uno"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full border border-border transition-colors hover:border-primary disabled:opacity-40"
+        >
+          <Minus className="size-4" />
+        </button>
+        <span className="w-6 text-center text-sm font-semibold tabular-nums">{quantity}</span>
+        <button
+          type="button"
+          onClick={() => setQuantity((q) => q + 1)}
+          aria-label="Agregar uno"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-white transition-colors hover:brightness-110"
+        >
+          <Plus className="size-4" />
+        </button>
+      </div>
       <Button className="w-full" disabled={selected.length === 0} onClick={confirm}>
-        Agregar al pedido · {currency.format(product.price)}
+        Agregar al pedido · {currency.format(product.price * quantity)}
       </Button>
     </div>
   );
