@@ -28,6 +28,7 @@ const CHICKEN_OPTIONS: ProductOptions = {
   question: "¿Con qué salsa? Podés elegir más de una.",
   choices: ["Chimichurri", "Criolla", "Limón"],
   multiple: true,
+  optional: true,
 };
 
 const GRILL_OPTIONS: ProductOptions = {
