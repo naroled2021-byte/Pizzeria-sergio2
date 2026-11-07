@@ -15,7 +15,7 @@ export const BUSINESS_LINKS = {
 export const MENU_CATEGORY_INFO: Record<string, { subtitle: string; emoji: string }> = {
   Promociones: { subtitle: "Combos al mejor precio", emoji: "🏷️" },
   Pizzas: { subtitle: "Elegí tu pizza favorita", emoji: "🍕" },
-  Empanadas: { subtitle: "Media docena, docena o más, con tus gustos", emoji: "🥟" },
+  Empanadas: { subtitle: "Desde 3, con los gustos que quieras", emoji: "🥟" },
   Parrilla: { subtitle: "Viernes, sábados y domingos", emoji: "🔥" },
   Bebidas: { subtitle: "Gaseosas, aguas, cervezas y vino", emoji: "🥤" },
 };

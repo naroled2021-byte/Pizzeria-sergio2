@@ -1,13 +1,15 @@
 // La cantidad de cada gusto se guarda repitiendo el gusto en el ítem (3 de Pollo = 3 filas).
 
-/** Empanadas que trae un producto según su nombre o descripción ("1/2 Docena", "Docena y media", "2 Docenas"),
- *  o null si no se vende por docena. */
+/** Empanadas que trae un producto según su nombre o descripción ("3 empanadas", "1/2 Docena", "Docena y media", "2 Docenas"),
+ *  o null si no se vende por cantidad. */
 export function dozenUnits(product: { name: string; description: string | null }): number | null {
   const text = `${product.name} ${product.description ?? ""}`;
   if (/docena\s+y\s+media/i.test(text)) return 18;
   if (/(1\/2|media)\s*docena/i.test(text)) return 6;
   const match = text.match(/(\d+)?\s*docenas?/i);
-  return match ? Number(match[1] ?? 1) * 12 : null;
+  if (match) return Number(match[1] ?? 1) * 12;
+  const units = text.match(/(\d+)\s*empanadas/i);
+  return units ? Number(units[1]) : null;
 }
 
 /** Cuántas unidades se reparten entre los gustos; 0 si el producto no lleva gustos. */
