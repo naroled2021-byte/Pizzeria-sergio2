@@ -26,7 +26,7 @@ export type ChickenPromoChoice = {
 };
 
 const NOTE_SEPARATOR = " | ";
-const NOT_CHOSEN = "sin elegir";
+export const NOT_CHOSEN = "sin elegir";
 
 /** Una bebida más barata que la incluida no descuenta nada de la promo. */
 export function otherDrinkExtra(drinkPrice: number, baseDrinkPrice: number): number {

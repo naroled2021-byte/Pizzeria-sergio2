@@ -234,7 +234,7 @@ function UnitsPicker({ product, options, units, onAdd }: OptionPickerProps & { u
   return (
     <div className="flex flex-col gap-3">
       <p className="text-xs text-muted-foreground">
-        {options.question} ({total}/{units}).
+        {options.question} ({total}/{units}).{options.optional && " Podés dejar opciones sin marcar."}
       </p>
       <FlavorCounter
         flavors={options.choices.map((c) => ({ id: c, name: c }))}
@@ -243,7 +243,7 @@ function UnitsPicker({ product, options, units, onAdd }: OptionPickerProps & { u
         limit={units}
         maxDistinct={options.choices.length}
       />
-      <Button className="w-full" disabled={total !== units} onClick={confirm}>
+      <Button className="w-full" disabled={!options.optional && total !== units} onClick={confirm}>
         Agregar al pedido · {currency.format(product.price)}
       </Button>
     </div>
@@ -256,8 +256,8 @@ function ChoicePicker({ product, options, onAdd }: OptionPickerProps) {
 
   function toggle(option: string) {
     setSelected((prev) => {
-      if (!options.multiple) return [option];
-      return prev.includes(option) ? prev.filter((o) => o !== option) : [...prev, option];
+      if (prev.includes(option)) return prev.filter((o) => o !== option);
+      return options.multiple ? [...prev, option] : [option];
     });
   }
 
@@ -277,6 +277,7 @@ function ChoicePicker({ product, options, onAdd }: OptionPickerProps) {
 
   return (
     <div className="flex flex-col gap-3">
+      {options.optional && <p className="text-xs text-muted-foreground">Podés dejar opciones sin marcar.</p>}
       <ChipGroup title={options.question}>
         {options.choices.map((option) => (
           <Chip key={option} selected={selected.includes(option)} onClick={() => toggle(option)}>
@@ -305,7 +306,7 @@ function ChoicePicker({ product, options, onAdd }: OptionPickerProps) {
           <Plus className="size-4" />
         </button>
       </div>
-      <Button className="w-full" disabled={selected.length === 0} onClick={confirm}>
+      <Button className="w-full" disabled={!options.optional && selected.length === 0} onClick={confirm}>
         Agregar al pedido · {currency.format(product.price * quantity)}
       </Button>
     </div>
