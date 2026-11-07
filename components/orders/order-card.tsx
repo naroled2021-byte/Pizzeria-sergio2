@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Ban, MapPin, MonitorSmartphone, Pencil, Printer, Store, Truck } from "lucide-react";
+import { ArrowLeft, ArrowRight, Ban, Check, MapPin, MonitorSmartphone, Pencil, Printer, Store, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import {
   ORDER_CHANNEL,
   ORDER_CHANNEL_LABEL,
   ORDER_CHANNEL_COLOR,
+  ORDER_STATUS,
   PAYMENT_METHOD,
   PAYMENT_METHOD_LABEL,
 } from "@/lib/constants";
@@ -117,6 +118,12 @@ export function OrderCard({
           {ORDER_TYPE_LABEL[order.type] ?? order.type}
         </Badge>
         {order.tableNumber && <span className="text-xs text-muted-foreground">Mesa {order.tableNumber}</span>}
+        {order.channel === ORDER_CHANNEL.SELF_SERVICE && order.status === ORDER_STATUS.READY && (
+          <Badge className="gap-1 border-none bg-emerald-600 text-[10px] text-white">
+            <Check className="size-3" />
+            Listo en cocina
+          </Badge>
+        )}
       </div>
 
       <Tooltip>

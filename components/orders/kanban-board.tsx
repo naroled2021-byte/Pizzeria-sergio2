@@ -70,9 +70,9 @@ const counterColumns: Column[] = [
 ];
 
 // Autoservicio llega solo y se imprime al entrar (vía el agente local): de "Nuevos" pasa
-// directo a "Entregados", y ahí se descuenta el stock (ver updateOrderStatus). "Nuevos" también
-// muestra los que están en preparación o listos (de Cocina, o de antes de este cambio) para que
-// no queden fuera del tablero. "Volver" los deja en preparación y no en "Nuevos": al salir de
+// directo a "Entregados", o antes a "Listo" desde Cocina, y al salir de "Nuevos" se descuenta el
+// stock (ver updateOrderStatus). "Nuevos" también muestra los que están en preparación o listos
+// para que no queden fuera del tablero. "Volver" los deja en preparación y no en "Nuevos": al salir de
 // "Nuevos" se descuenta stock, y volver ahí lo descontaría dos veces.
 const selfServiceColumns: Column[] = [
   {

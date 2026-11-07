@@ -140,7 +140,7 @@ export function KitchenBoard({ orders }: { orders: KitchenOrder[] }) {
               {orders.length}
             </span>
           </h1>
-          <p className="text-xs text-muted-foreground sm:text-sm">En preparación · se actualiza solo</p>
+          <p className="text-xs text-muted-foreground sm:text-sm">Para preparar · se actualiza solo</p>
         </div>
         <Button variant="outline" size="sm" className="gap-1.5" onClick={toggleSound}>
           {soundEnabled ? <Bell className="size-4" /> : <BellOff className="size-4" />}
@@ -155,8 +155,8 @@ export function KitchenBoard({ orders }: { orders: KitchenOrder[] }) {
       {orders.length === 0 ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-4 py-20 text-center text-muted-foreground">
           <ChefHat className="size-16" strokeWidth={1.25} />
-          <p className="text-xl font-medium text-foreground">No hay pedidos en preparación</p>
-          <p className="text-sm">Cuando un pedido pase a &quot;En preparación&quot; en Pedidos, aparece acá.</p>
+          <p className="text-xl font-medium text-foreground">No hay pedidos para preparar</p>
+          <p className="text-sm">Los pedidos nuevos de Autoservicio, Mostrador y Ventas aparecen acá.</p>
         </div>
       ) : (
         <main className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:p-6 xl:grid-cols-3 2xl:grid-cols-4">

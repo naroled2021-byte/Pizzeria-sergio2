@@ -9,9 +9,10 @@ export const dynamic = "force-dynamic";
 export default async function CocinaPage() {
   const orders = await getKanbanOrders();
 
-  // Solo lo que está en preparación, el más viejo primero (es el que hay que sacar antes).
+  // Lo que hay que preparar, el más viejo primero (es el que hay que sacar antes). Autoservicio
+  // entra directo en "Nuevos" sin que nadie lo pase a preparación, así que también va acá.
   const preparing = orders
-    .filter((o) => o.status === ORDER_STATUS.PREPARING)
+    .filter((o) => o.status === ORDER_STATUS.PREPARING || o.status === ORDER_STATUS.RECEIVED)
     .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
   return (
