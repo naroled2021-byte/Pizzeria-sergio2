@@ -134,6 +134,10 @@ export async function createSelfServiceOrder(
   const deliveryFee = data.type === "DELIVERY" ? SELF_SERVICE_DELIVERY_FEE : 0;
   const total = subtotal + deliveryFee;
 
+  if (data.paymentMethod === "CASH" && data.cashTendered! < total) {
+    return { ok: false, error: "El monto con el que pagás no alcanza para el total del pedido" };
+  }
+
   // Nunca se confía en que el cliente diga que puede pagar con Mercado Pago: se vuelve a
   // chequear acá que el teléfono sea de un cliente habilitado.
   const isMercadoPago = data.paymentMethod === "MERCADOPAGO";

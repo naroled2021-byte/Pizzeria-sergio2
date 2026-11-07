@@ -26,8 +26,8 @@ export function ReportsClient() {
   return (
     <Tabs value={tab} onValueChange={(v) => v && setTab(v)}>
       <div className="flex flex-col gap-4">
-        <div className="-mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-        <TabsList className="w-max">
+        <div>
+        <TabsList className="flex-wrap justify-start group-data-horizontal/tabs:h-auto">
           <TabsTrigger value="sales-counter">Ventas Mostrador</TabsTrigger>
           <TabsTrigger value="sales-self">Ventas Autoservicio</TabsTrigger>
           <TabsTrigger value="cancelled-counter">Cancelados Mostrador</TabsTrigger>

@@ -398,6 +398,10 @@ export function AutoservicioClient({
       setError("Indicá con cuánto pagás");
       return;
     }
+    if (!payWithMercadoPago && Number(cashTendered) < total) {
+      setError("El monto con el que pagás no alcanza para el total del pedido");
+      return;
+    }
 
     if (drinks.length > 0) setDrinksOfferFrom(total);
     else submitOrder();

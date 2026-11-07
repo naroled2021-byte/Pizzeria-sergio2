@@ -1,4 +1,4 @@
-import { ORDER_TYPE_LABEL, PAYMENT_METHOD_LABEL } from "@/lib/constants";
+import { ORDER_TYPE_LABEL, ORDER_CHANNEL, PAYMENT_METHOD_LABEL } from "@/lib/constants";
 import { currency, formatOrderNumber } from "@/lib/format";
 import { formatDateTimeAR } from "@/lib/date-ar";
 import { detailFromNote } from "@/lib/chicken-promo";
@@ -76,7 +76,7 @@ export type ComandaOrder = {
 };
 
 /** Mismo contenido que el ticket completo de Mostrador (logo aparte, lo agrega el script que
- *  imprime), con la etiqueta "AUTOSERVICIO" agregada para distinguirlo de un vistazo. Devuelve
+ *  imprime), con la etiqueta del canal agregada para distinguirlo de un vistazo. Devuelve
  *  líneas con su alineación en vez de texto ya formateado, para que el centrado/alineado se
  *  haga con el ancho real de la impresora, no con una estimación de caracteres. */
 export function buildComandaLines(order: ComandaOrder, settings: ComandaSettings): ComandaLine[] {
@@ -92,7 +92,7 @@ export function buildComandaLines(order: ComandaOrder, settings: ComandaSettings
   }
 
   lines.push(divider);
-  lines.push(text("AUTOSERVICIO", { align: "center", big: true }));
+  lines.push(text(order.channel === ORDER_CHANNEL.SELF_SERVICE ? "AUTOSERVICIO" : "MOSTRADOR", { align: "center", big: true }));
   const date = formatDateTimeAR(order.createdAt);
   // "Pedido #" en su propia línea grande: si va junto con la hora en la misma línea (las
   // dos en letra grande) no entran y se pisan en papel angosto.

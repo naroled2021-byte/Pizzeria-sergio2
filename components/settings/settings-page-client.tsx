@@ -26,7 +26,7 @@ export function SettingsPageClient({
 }) {
   return (
     <Tabs defaultValue="general">
-      <TabsList className="flex-wrap">
+      <TabsList className="flex-wrap justify-start group-data-horizontal/tabs:h-auto">
         <TabsTrigger value="general">General</TabsTrigger>
         <TabsTrigger value="appearance">Apariencia</TabsTrigger>
         <TabsTrigger value="payments">Métodos de pago</TabsTrigger>

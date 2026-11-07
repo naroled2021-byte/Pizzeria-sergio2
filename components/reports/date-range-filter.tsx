@@ -3,13 +3,10 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { dateKeyAR } from "@/lib/date-ar";
 import { DATE_RANGE_PRESET_LABEL, getRangeForPreset, type DateRange, type DateRangePreset } from "@/lib/date-range";
 
 const presets: DateRangePreset[] = ["today", "yesterday", "week", "month", "year"];
-
-function toInputValue(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
 
 export function DateRangeFilter({
   onChange,
@@ -17,8 +14,8 @@ export function DateRangeFilter({
   onChange: (range: DateRange, preset: DateRangePreset) => void;
 }) {
   const [preset, setPreset] = useState<DateRangePreset>("today");
-  const [customFrom, setCustomFrom] = useState(toInputValue(new Date()));
-  const [customTo, setCustomTo] = useState(toInputValue(new Date()));
+  const [customFrom, setCustomFrom] = useState(dateKeyAR(new Date()));
+  const [customTo, setCustomTo] = useState(dateKeyAR(new Date()));
 
   function selectPreset(p: DateRangePreset) {
     setPreset(p);
@@ -27,8 +24,8 @@ export function DateRangeFilter({
 
   function applyCustom() {
     setPreset("custom");
-    const from = new Date(customFrom + "T00:00:00");
-    const to = new Date(customTo + "T23:59:59");
+    const from = new Date(customFrom + "T00:00:00-03:00");
+    const to = new Date(customTo + "T23:59:59-03:00");
     onChange({ from, to }, "custom");
   }
 

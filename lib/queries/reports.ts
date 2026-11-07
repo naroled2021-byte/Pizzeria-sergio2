@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { dateKeyAR } from "@/lib/date-ar";
 import { ORDER_STATUS, getStockStatus } from "@/lib/constants";
 import { formatOrderNumber } from "@/lib/format";
 import type { DateRange } from "@/lib/date-range";
@@ -30,7 +31,7 @@ async function getOrdersReport({
 
   const dailyMap = new Map<string, number>();
   for (const o of orders) {
-    const key = o.createdAt.toISOString().slice(0, 10);
+    const key = dateKeyAR(o.createdAt);
     dailyMap.set(key, (dailyMap.get(key) ?? 0) + o.total);
   }
   const daily = Array.from(dailyMap.entries())

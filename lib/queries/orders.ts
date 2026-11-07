@@ -6,7 +6,8 @@ export async function getKanbanOrders() {
   // Si hay una caja abierta, Pedidos solo muestra lo que entró desde que se abrió. Si la
   // última caja ya se cerró, el corte pasa a ser ese cierre (no el día completo) — así los
   // pedidos de la caja anterior dejan de aparecer apenas se cierra, sin esperar a que se
-  // abra una nueva. Si nunca hubo caja hoy, se muestra el día completo como antes.
+  // abra una nueva. Si nunca hubo caja hoy, se muestra el día completo como antes. Lo que
+  // sigue sin entregar queda a la vista aunque sea de antes del corte, para que no se pierda.
   const lastRegister = await db.cashRegister.findFirst({
     where: { status: { in: ["OPEN", "CLOSED"] } },
     orderBy: { openedAt: "desc" },
@@ -18,7 +19,13 @@ export async function getKanbanOrders() {
   return db.order.findMany({
     where: {
       status: { not: ORDER_STATUS.CANCELLED },
-      createdAt: { gte: since },
+      OR: [
+        { createdAt: { gte: since } },
+        {
+          status: { in: [ORDER_STATUS.RECEIVED, ORDER_STATUS.PREPARING, ORDER_STATUS.READY] },
+          createdAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+        },
+      ],
     },
     include: {
       items: { include: { product: true, flavors: { include: { flavor: true } } } },
